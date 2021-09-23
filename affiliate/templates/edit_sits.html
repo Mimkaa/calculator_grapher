@@ -1,0 +1,466 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Edit Sits{% endblock %}
+{% block content %}
+<head>
+  <link href="{% static 'affiliate/css/styles.css' %}" rel="stylesheet" type='text/css'  >
+
+</head>
+
+  <body>
+
+  <h1>Choose a sit</h1>
+
+
+
+    <div class="container" >
+
+
+      <div class="row">
+
+        {% if not booked1 %}
+        <div class="seat">
+
+            <form action="{% url 'book' buss_schedule.pk %}" method="POST">
+            {% csrf_token %}
+            <button type="submit" , name="sit_id", value="1", class="button_trans">1</button>
+            </form>
+           </div>
+
+        {% else %}
+              <div class="seat occupied">
+                <form action="{% url 'book' buss_schedule.pk %}" method="POST">
+                {% csrf_token %}
+                <button type="submit" , name="sit_id", value="1", class="button_trans" style="color:black">1</button>
+                  </form>
+              </div>
+        {% endif %}
+
+         {% if not booked7 %}
+        <div class="seat">
+            <form action="{% url 'book' buss_schedule.pk %}" method="POST">
+            {% csrf_token %}
+            <button type="submit" , name="sit_id", value="7", class="button_trans">7</button>
+            </form>
+           </div>
+        {% else %}
+              <div class="seat occupied">
+                <form action="{% url 'book' buss_schedule.pk %}" method="POST">
+                {% csrf_token %}
+                <button type="submit" , name="sit_id", value="7", class="button_trans" style="color:black">7</button>
+                  </form>
+              </div>
+        {% endif %}
+
+        {% if not booked13 %}
+        <div class="seat">
+            <form action="{% url 'book' buss_schedule.pk %}" method="POST">
+            {% csrf_token %}
+            <button type="submit" , name="sit_id", value="13", class="button_trans">13</button>
+            </form>
+           </div>
+        {% else %}
+              <div class="seat occupied">
+                <form action="{% url 'book' buss_schedule.pk %}" method="POST">
+                {% csrf_token %}
+                <button type="submit" , name="sit_id", value="13", class="button_trans" style="color:black">13</button>
+                  </form>
+              </div>
+        {% endif %}
+
+        {% if not booked19 %}
+        <div class="seat">
+            <form action="{% url 'book' buss_schedule.pk %}" method="POST">
+            {% csrf_token %}
+            <button type="submit" , name="sit_id", value="19", class="button_trans">19</button>
+            </form>
+           </div>
+        {% else %}
+              <div class="seat occupied">
+                <form action="{% url 'book' buss_schedule.pk %}" method="POST">
+                {% csrf_token %}
+                <button type="submit" , name="sit_id", value="19", class="button_trans" style="color:black">19</button>
+                  </form>
+              </div>
+        {% endif %}
+
+      </div>
+      <div class="row">
+        {% if not booked2 %}
+        <div class="seat">
+            <form action="{% url 'book' buss_schedule.pk %}" method="POST">
+            {% csrf_token %}
+            <button type="submit" , name="sit_id", value="2", class="button_trans">2</button>
+            </form>
+           </div>
+        {% else %}
+              <div class="seat occupied">
+                <form action="{% url 'book' buss_schedule.pk %}" method="POST">
+                {% csrf_token %}
+                <button type="submit" , name="sit_id", value="2", class="button_trans" style="color:black">2</button>
+                  </form>
+              </div>
+        {% endif %}
+
+        {% if not booked8 %}
+        <div class="seat">
+            <form action="{% url 'book' buss_schedule.pk %}" method="POST">
+            {% csrf_token %}
+            <button type="submit" , name="sit_id", value="8", class="button_trans">8</button>
+            </form>
+           </div>
+        {% else %}
+              <div class="seat occupied">
+                <form action="{% url 'book' buss_schedule.pk %}" method="POST">
+                {% csrf_token %}
+                <button type="submit" , name="sit_id", value="8", class="button_trans" style="color:black">8</button>
+                  </form>
+              </div>
+        {% endif %}
+
+        {% if not booked14 %}
+        <div class="seat">
+            <form action="{% url 'book' buss_schedule.pk %}" method="POST">
+            {% csrf_token %}
+            <button type="submit" , name="sit_id", value="14", class="button_trans">14</button>
+            </form>
+           </div>
+        {% else %}
+              <div class="seat occupied">
+                <form action="{% url 'book' buss_schedule.pk %}" method="POST">
+                {% csrf_token %}
+                <button type="submit" , name="sit_id", value="14", class="button_trans" style="color:black">14</button>
+                  </form>
+              </div>
+        {% endif %}
+
+        {% if not booked20 %}
+        <div class="seat">
+            <form action="{% url 'book' buss_schedule.pk %}" method="POST">
+            {% csrf_token %}
+            <button type="submit" , name="sit_id", value="20", class="button_trans">20</button>
+            </form>
+           </div>
+        {% else %}
+              <div class="seat occupied">
+                <form action="{% url 'book' buss_schedule.pk %}" method="POST">
+                {% csrf_token %}
+                <button type="submit" , name="sit_id", value="20", class="button_trans" style="color:black">20</button>
+                  </form>
+              </div>
+        {% endif %}
+
+
+      </div>
+
+      <div class="row">
+        {% if not booked3 %}
+        <div class="seat">
+            <form action="{% url 'book' buss_schedule.pk %}" method="POST">
+            {% csrf_token %}
+            <button type="submit" , name="sit_id", value="3", class="button_trans">3</button>
+            </form>
+           </div>
+        {% else %}
+              <div class="seat occupied">
+                <form action="{% url 'book' buss_schedule.pk %}" method="POST">
+                {% csrf_token %}
+                <button type="submit" , name="sit_id", value="3", class="button_trans" style="color:black">3</button>
+                  </form>
+              </div>
+        {% endif %}
+
+        {% if not booked9 %}
+        <div class="seat">
+            <form action="{% url 'book' buss_schedule.pk %}" method="POST">
+            {% csrf_token %}
+            <button type="submit" , name="sit_id", value="9", class="button_trans">9</button>
+            </form>
+           </div>
+        {% else %}
+              <div class="seat occupied">
+                <form action="{% url 'book' buss_schedule.pk %}" method="POST">
+                {% csrf_token %}
+                <button type="submit" , name="sit_id", value="9", class="button_trans" style="color:black">9</button>
+                  </form>
+              </div>
+        {% endif %}
+
+        {% if not booked15 %}
+        <div class="seat">
+            <form action="{% url 'book' buss_schedule.pk %}" method="POST">
+            {% csrf_token %}
+            <button type="submit" , name="sit_id", value="15", class="button_trans">15</button>
+            </form>
+           </div>
+        {% else %}
+              <div class="seat occupied">
+                <form action="{% url 'book' buss_schedule.pk %}" method="POST">
+                {% csrf_token %}
+                <button type="submit" , name="sit_id", value="15", class="button_trans" style="color:black">15</button>
+                  </form>
+              </div>
+        {% endif %}
+
+        {% if not booked21 %}
+        <div class="seat">
+            <form action="{% url 'book' buss_schedule.pk %}" method="POST">
+            {% csrf_token %}
+            <button type="submit" , name="sit_id", value="21", class="button_trans">21</button>
+            </form>
+           </div>
+        {% else %}
+              <div class="seat occupied">
+                <form action="{% url 'book' buss_schedule.pk %}" method="POST">
+                {% csrf_token %}
+                <button type="submit" , name="sit_id", value="21", class="button_trans" style="color:black">21</button>
+                  </form>
+              </div>
+        {% endif %}
+
+
+
+      </div>
+
+      <div class="row">
+
+
+        {% if not booked4 %}
+        <div class="seat">
+            <form action="{% url 'book' buss_schedule.pk %}" method="POST">
+            {% csrf_token %}
+            <button type="submit" , name="sit_id", value="4", class="button_trans">4</button>
+            </form>
+           </div>
+        {% else %}
+              <div class="seat occupied">
+                <form action="{% url 'book' buss_schedule.pk %}" method="POST">
+                {% csrf_token %}
+                <button type="submit" , name="sit_id", value="4", class="button_trans" style="color:black">4</button>
+                  </form>
+              </div>
+        {% endif %}
+
+
+        {% if not booked10 %}
+        <div class="seat">
+            <form action="{% url 'book' buss_schedule.pk %}" method="POST">
+            {% csrf_token %}
+            <button type="submit" , name="sit_id", value="10", class="button_trans">10</button>
+            </form>
+           </div>
+        {% else %}
+              <div class="seat occupied">
+                <form action="{% url 'book' buss_schedule.pk %}" method="POST">
+                {% csrf_token %}
+                <button type="submit" , name="sit_id", value="10", class="button_trans" style="color:black">10</button>
+                  </form>
+              </div>
+        {% endif %}
+
+        {% if not booked16 %}
+        <div class="seat">
+            <form action="{% url 'book' buss_schedule.pk %}" method="POST">
+            {% csrf_token %}
+            <button type="submit" , name="sit_id", value="16", class="button_trans">16</button>
+            </form>
+           </div>
+        {% else %}
+              <div class="seat occupied">
+                <form action="{% url 'book' buss_schedule.pk %}" method="POST">
+                {% csrf_token %}
+                <button type="submit" , name="sit_id", value="16", class="button_trans" style="color:black">16</button>
+                  </form>
+              </div>
+        {% endif %}
+
+        {% if not booked22 %}
+        <div class="seat">
+            <form action="{% url 'book' buss_schedule.pk %}" method="POST">
+            {% csrf_token %}
+            <button type="submit" , name="sit_id", value="22", class="button_trans">22</button>
+            </form>
+           </div>
+        {% else %}
+              <div class="seat occupied">
+                <form action="{% url 'book' buss_schedule.pk %}" method="POST">
+                {% csrf_token %}
+                <button type="submit" , name="sit_id", value="22", class="button_trans" style="color:black">22</button>
+                  </form>
+              </div>
+        {% endif %}
+
+      </div>
+
+      <div class="row">
+        {% if not booked5 %}
+        <div class="seat">
+            <form action="{% url 'book' buss_schedule.pk %}" method="POST">
+            {% csrf_token %}
+            <button type="submit" , name="sit_id", value="5", class="button_trans">5</button>
+            </form>
+           </div>
+        {% else %}
+              <div class="seat occupied">
+                <form action="{% url 'book' buss_schedule.pk %}" method="POST">
+                {% csrf_token %}
+                <button type="submit" , name="sit_id", value="5", class="button_trans" style="color:black">5</button>
+                  </form>
+              </div>
+        {% endif %}
+
+        {% if not booked11 %}
+        <div class="seat">
+            <form action="{% url 'book' buss_schedule.pk %}" method="POST">
+            {% csrf_token %}
+            <button type="submit" , name="sit_id", value="11", class="button_trans">11</button>
+            </form>
+           </div>
+        {% else %}
+              <div class="seat occupied">
+                <form action="{% url 'book' buss_schedule.pk %}" method="POST">
+                {% csrf_token %}
+                <button type="submit" , name="sit_id", value="11", class="button_trans" style="color:black">11</button>
+                  </form>
+              </div>
+        {% endif %}
+
+        {% if not booked17 %}
+        <div class="seat">
+            <form action="{% url 'book' buss_schedule.pk %}" method="POST">
+            {% csrf_token %}
+            <button type="submit" , name="sit_id", value="17", class="button_trans">17</button>
+            </form>
+           </div>
+        {% else %}
+              <div class="seat occupied">
+                <form action="{% url 'book' buss_schedule.pk %}" method="POST">
+                {% csrf_token %}
+                <button type="submit" , name="sit_id", value="17", class="button_trans" style="color:black">17</button>
+                  </form>
+              </div>
+        {% endif %}
+
+        {% if not booked23 %}
+        <div class="seat">
+            <form action="{% url 'book' buss_schedule.pk %}" method="POST">
+            {% csrf_token %}
+            <button type="submit" , name="sit_id", value="23", class="button_trans">23</button>
+            </form>
+           </div>
+        {% else %}
+              <div class="seat occupied">
+                <form action="{% url 'book' buss_schedule.pk %}" method="POST">
+                {% csrf_token %}
+                <button type="submit" , name="sit_id", value="23", class="button_trans" style="color:black">23</button>
+                  </form>
+              </div>
+        {% endif %}
+
+      </div>
+
+      <div class="row">
+        {% if not booked6 %}
+        <div class="seat">
+            <form action="{% url 'book' buss_schedule.pk %}" method="POST">
+            {% csrf_token %}
+            <button type="submit" , name="sit_id", value="6", class="button_trans">6</button>
+            </form>
+           </div>
+        {% else %}
+              <div class="seat occupied">
+                <form action="{% url 'book' buss_schedule.pk %}" method="POST">
+                {% csrf_token %}
+                <button type="submit" , name="sit_id", value="6", class="button_trans" style="color:black">6</button>
+                  </form>
+              </div>
+        {% endif %}
+
+        {% if not booked12 %}
+        <div class="seat">
+            <form action="{% url 'book' buss_schedule.pk %}" method="POST">
+            {% csrf_token %}
+            <button type="submit" , name="sit_id", value="12", class="button_trans">12</button>
+            </form>
+           </div>
+        {% else %}
+              <div class="seat occupied">
+                <form action="{% url 'book' buss_schedule.pk %}" method="POST">
+                {% csrf_token %}
+                <button type="submit" , name="sit_id", value="12", class="button_trans" style="color:black">12</button>
+                  </form>
+              </div>
+        {% endif %}
+
+        {%  if not booked18 %}
+        <div class="seat">
+            <form action="{% url 'book' buss_schedule.pk %}" method="POST">
+            {% csrf_token %}
+            <button type="submit" , name="sit_id", value="18", class="button_trans">18</button>
+            </form>
+           </div>
+        {% else %}
+              <div class="seat occupied">
+                <form action="{% url 'book' buss_schedule.pk %}" method="POST">
+                {% csrf_token %}
+                <button type="submit" , name="sit_id", value="18", class="button_trans" style="color:black">18</button>
+                  </form>
+              </div>
+        {% endif %}
+
+        {% if not booked24 %}
+        <div class="seat">
+            <form action="{% url 'book' buss_schedule.pk %}" method="POST">
+            {% csrf_token %}
+            <button type="submit" , name="sit_id", value="24", class="button_trans">24</button>
+            </form>
+           </div>
+        {% else %}
+              <div class="seat occupied">
+                <form action="{% url 'book' buss_schedule.pk %}" method="POST">
+                {% csrf_token %}
+                <button type="submit" , name="sit_id", value="24", class="button_trans" style="color:black">24</button>
+                  </form>
+              </div>
+        {% endif %}
+
+
+      </div>
+    </div>
+
+    <p class="text">
+        You have selected <span id="count">{{how_many_booked}} ({% for sit in sits %} {{sit.number}}, {% endfor %})</span> seats for a price of $<span id="total">{{price}} </span>&nbsp &nbsp &nbsp&nbsp &nbsp &nbsp&nbsp &nbsp &nbsp &nbsp &nbsp &nbsp&nbsp &nbsp &nbsp&nbsp &nbsp &nbsp
+  <form style="padding-left:500px;" action="{% url 'create_a_book' buss_schedule.pk %}" method="POST">
+                {% csrf_token %}
+                <button type="submit" , name="sit_id", value="24", class="button_trans" style="width: 115px;
+    height: 50px;
+    background: #00BFFF;
+
+    text-align: center;
+    border-radius: 5px;
+    color: white;
+    font-weight: bold;
+    line-height: 25px;">Book</button>
+  </form>
+
+    <script src="script.js"></script>
+
+
+  </body>
+
+
+
+
+
+
+
+
+
+{% endblock %}
+
+
+
+
+
+
+

@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+{% block title %}Home{% endblock %}
+{% block content %}
+
+<h1>Departure Table:</h1>
+
+{% for trip in object_list %}
+
+        <div style=" height: 250px; width: 60%;background-color:#909090;border-radius: 25%;text-align: right; ">
+            <img style="float:left;height: 250px;" src="{{trip.dest_pic.url}}"  >
+            <a style="color:white;" href="{% url 'trip_details' trip.pk %}"><h1>{{trip.destination}}</h1></a>
+            {% if user.id == 1 %}
+        <a href="{% url 'delete_trip' trip.pk %}">(Delete)</a>
+        <a href="{% url 'edit_trip' trip.pk %}">(Edit)</a>
+            {% endif %}
+        </div><br/>
+
+
+{% endfor %}
+
+
+
+{% endblock %}

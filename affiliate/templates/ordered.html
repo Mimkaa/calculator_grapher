@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+{% block title %}Home{% endblock %}
+{% block content %}
+
+<h1>{{user.username}} Bookings:</h1>
+<ul>
+
+        {% for book,sits in trip_sit.items %}
+            <h3>
+            <p class="text">
+                 <span >{{book.trip.destination}}</span>: You have ordered these places <span >({% for sit in sits %} {{sit.number}}, {% endfor %})</span> for the price of <span >{% widthratio sits|length 1 price %}</span>$
+                <a style="display: block;
+    width: 115px;
+    height: 25px;
+    background: #4E9CAF;
+
+    text-align: center;
+    border-radius: 5px;
+    color: white;
+    font-weight: bold;
+    line-height: 25px;" href="{% url 'delete_book' book.pk  %}">Discard</a></p></h3><br/>
+
+        {% endfor %}
+
+
+
+
+
+</ul>
+
+{% endblock %}

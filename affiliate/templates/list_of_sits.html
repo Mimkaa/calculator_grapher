@@ -1,0 +1,16 @@
+{% extends 'base.html'%}
+
+
+{% block content %}
+<h1>List</h1>
+<ul>
+{% for sit in object_list %}
+    <li>{{sit.number}}-{{sit.schedule}}
+        <a href="{% url 'delete_sit' sit.id %}">(Delete)</a>
+    </li>
+
+
+{% endfor %}
+</ul>
+
+{% endblock %}

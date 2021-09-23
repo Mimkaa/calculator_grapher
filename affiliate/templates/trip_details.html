@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+{% block title %}Details{% endblock %}
+{% block content %}
+<h1>
+  Destination : {{buss_schedule.destination}}
+</h1>
+<h3>
+  Depature at : {{buss_schedule.departure}}
+    </h3>
+<h3>
+  Duration  : {{buss_schedule.trip_duration}}
+    </h3>
+<h3>
+  Distance : {{buss_schedule.trip_distance}}
+    </h3>
+  <br/>
+  {% if buss_schedule.bus_pic %}
+  <h3>Bus:</h3>
+ <br/>
+  <img src="{{buss_schedule.bus_pic.url}}" class="img-fluid rounded-start"   >
+  {% endif %}
+<br/>
+<br/>
+<div style="height: 50px; width: 15%;background-color:#0d6efd;border-radius: 5px; text-align: center;">
+<a style="color:white;" href="{% url 'edit_sits' buss_schedule.pk %}"><h3>Choose Sits</h3></a>
+    </div>
+<br/>
+{% if user.id == 1 %}
+<a href="{% url 'create_sits' buss_schedule.pk %}">Create Sits</a>
+<br/>
+<a href="{% url 'list_of_sits' buss_schedule.pk %}">list of Sits</a>
+{% endif %}
+{% endblock %}
