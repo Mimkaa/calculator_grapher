@@ -13,7 +13,7 @@
 
 
 
-    <div class="container" >
+    <div class="container_sits" >
 
 
       <div class="row">
@@ -430,7 +430,7 @@
 
     <p class="text">
         You have selected <span id="count">{{how_many_booked}} ({% for sit in sits %} {{sit.number}}, {% endfor %})</span> seats for a price of $<span id="total">{{price}} </span>&nbsp &nbsp &nbsp&nbsp &nbsp &nbsp&nbsp &nbsp &nbsp &nbsp &nbsp &nbsp&nbsp &nbsp &nbsp&nbsp &nbsp &nbsp
-  <form style="padding-left:500px;" action="{% url 'create_a_book' buss_schedule.pk %}" method="POST">
+  <form  action="{% url 'create_a_book' buss_schedule.pk %}" method="POST">
                 {% csrf_token %}
                 <button type="submit" , name="sit_id", value="24", class="button_trans" style="width: 115px;
     height: 50px;
