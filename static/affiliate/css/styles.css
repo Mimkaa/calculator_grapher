@@ -19,8 +19,9 @@ body {
   flex-direction: column;
   color: white;
   align-items: center;
-  justify-content: center;
+
   height: 100vh;
+  padding-top: 70px;
   font-family: 'Lato', 'sans-serif';
 }
 
