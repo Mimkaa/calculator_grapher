@@ -3,16 +3,12 @@
 {% block content %}
 
 <h1>Departure Table:</h1>
-<style type="text/css">
 
-    .navbar navbar-expand-lg{
-    min-width:750px;
-    }
 </style>
 {% for trip in object_list %}
 
-        <div style=" height: 250px; width: 750px;background-color:#909090;border-radius: 25%; display: flex;">
-            <img style="float:left;height: 250px;" src="{{trip.dest_pic.url}}"  >
+        <div style=" height: 18%; width: 75%;background-color:#909090;border-radius: 25%; display: flex;">
+            <img style="float:left;height: 100%;width:50%" src="{{trip.dest_pic.url}}"  >
 
             <a style="color:white;right:0;" href="{% url 'trip_details' trip.pk %}"><h1>{{trip.destination}}</h1></a>
             {% if request.user.is_superuser %}
