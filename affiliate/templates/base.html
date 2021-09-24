@@ -32,7 +32,7 @@
           </li>
           <li class="nav-item">
             <a class="nav-link" href="{% url 'logout' %}">Logout</a>
-              {% if user.id == 1 %}
+              {% if request.user.is_superuser %}
           </li>
             <li class="nav-item">
             <a class="nav-link" href="{% url 'create_trip' %}">Create a trip</a>

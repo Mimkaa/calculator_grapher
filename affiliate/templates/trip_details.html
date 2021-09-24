@@ -25,7 +25,7 @@
 <a style="color:white;" href="{% url 'edit_sits' buss_schedule.pk %}"><h3>Choose Sits</h3></a>
     </div>
 <br/>
-{% if user.id == 1 %}
+{% if request.user.is_superuser %}
 <a href="{% url 'create_sits' buss_schedule.pk %}">Create Sits</a>
 <br/>
 <a href="{% url 'list_of_sits' buss_schedule.pk %}">list of Sits</a>
