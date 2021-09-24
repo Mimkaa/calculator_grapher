@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/3.2/ref/settings/
 import os
 from pathlib import Path
 import django_heroku
+import dj_database_url
 import whitenoise
 from decouple import config
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -27,11 +28,11 @@ SECRET_KEY = 'django-insecure-r3$sk2*i1s1!8*w5=)a25%gr1sh5mr-4o+b*hg79-y&syhe278
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['radiant-headland-34044.herokuapp.com','127.0.0.1']
 
 
 # Application definition
-ALLOWED_HOSTS=['radiant-headland-34044.herokuapp.com','127.0.0.1']
+
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -84,7 +85,8 @@ DATABASES = {
         'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
-
+db_from_env = dj_database_url.config()
+DATABASES['default'].update(db_from_env)
 
 # Password validation
 # https://docs.djangoproject.com/en/3.2/ref/settings/#auth-password-validators
@@ -125,7 +127,7 @@ USE_TZ = True
 STATIC_URL = '/static/'
 MEDIA_URL='/media/'
 
-
+STATIC_ROOT=os.path.join(BASE_DIR,'static')
 MEDIA_ROOT=os.path.join(BASE_DIR,'media')
 
 STATICFILES_DIRS=[os.path.join(BASE_DIR,'static'),]
@@ -139,6 +141,6 @@ LOGOUT_REDIRECT_URL='initial'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 AUTH_USER_MODEL='affiliate.NewUser'
-STATICFILES_STORAGE='whitenoise.storage.CompressedStaticFilesStorage'
+STATICFILES_STORAGE='whitenoise.storage.CompressedManifestStaticFilesStorage'
 django_heroku.settings(locals())
 
