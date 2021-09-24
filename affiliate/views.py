@@ -5,7 +5,7 @@ from django.urls import reverse_lazy,reverse
 from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponseRedirect
 def Initial(request):
-    return render(request,'initial_test.html',{})
+    return render(request,'initial.html',{})
 
 
 def HomeView(request):
