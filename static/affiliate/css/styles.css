@@ -32,6 +32,7 @@ body {
 
 
 .container_sits {
+  padding-top: 70px;
   perspective: 1000px;
   margin-bottom: 30px;
 }
@@ -106,3 +107,6 @@ p.text span {
 .dropdown-menu-right {
     right: 0;
     left: auto;
+
+
+
