@@ -7,7 +7,7 @@
 </style>
 {% for trip in object_list %}
 
-        <div style=" width: 75%;height: 30vw; background-color:#909090;border-radius: 25%; display: flex;">
+        <div style=" width: 75%;height: 15vw; background-color:#909090;border-radius: 25%; display: flex;">
             <img style="float:left;height: 100%;width:50%" src="{{trip.dest_pic.url}}"  >
 
             <a style="color:white;right:0;" href="{% url 'trip_details' trip.pk %}"><h1>{{trip.destination}}</h1></a>
