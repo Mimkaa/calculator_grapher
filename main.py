@@ -207,15 +207,18 @@ class Game:
                     else:
                         starting_point=-tiles_width*self.tilesize
                     for x in range(starting_point,tiles_width*self.tilesize):
-                            if 'tan' in fn or 'sin' in fn or 'cos' in fn:
+                            if 'tan' in fn or 'sin' in fn or 'cos' in fn or 'cot' in fn:
                                 x=x*pi/180
                             if 'asin' in fn  or 'acos' in fn:
                                 if x>=1:
                                     x=1
                                 elif x<=-1:
                                     x=-1
-
-                            list_of_points.append(Point(self,(x*self.tilesize+tiles_width//2*self.tilesize,-eval(fn)*self.tilesize+tiles_height//2*self.tilesize)))
+                            try:
+                                list_of_points.append(Point(self,(x*self.tilesize+tiles_width//2*self.tilesize,-eval(fn)*self.tilesize+tiles_height//2*self.tilesize)))
+                            except ZeroDivisionError:
+                                if x!=0:
+                                    list_of_points.append(Point(self,(x*self.tilesize+tiles_width//2*self.tilesize,-eval(fn)*self.tilesize+tiles_height//2*self.tilesize)))
 
 
                     self.dict_of_points[fn]=list_of_points
@@ -241,15 +244,18 @@ class Game:
                     else:
                         starting_point=-tiles_width*self.tilesize
                     for x in range(starting_point,tiles_width*self.tilesize):
-                            if 'tan' in fn or 'sin' in fn or 'cos' in fn:
+                            if 'tan' in fn or 'sin' in fn or 'cos' in fn or 'cot' in fn:
                                 x=x*pi/180
                             if 'asin' in fn  or 'acos' in fn:
                                 if x>=1:
                                     x=1
                                 elif x<=-1:
                                     x=-1
-
-                            list_of_points.append(Point(self,(x*self.tilesize+tiles_width//2*self.tilesize,-eval(fn)*self.tilesize+tiles_height//2*self.tilesize)))
+                            try:
+                                list_of_points.append(Point(self,(x*self.tilesize+tiles_width//2*self.tilesize,-eval(fn)*self.tilesize+tiles_height//2*self.tilesize)))
+                            except ZeroDivisionError:
+                                if x!=0:
+                                    list_of_points.append(Point(self,(x*self.tilesize+tiles_width//2*self.tilesize,-eval(fn)*self.tilesize+tiles_height//2*self.tilesize)))
 
 
                     self.dict_of_points[fn]=list_of_points
