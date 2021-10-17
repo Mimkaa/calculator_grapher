@@ -245,6 +245,26 @@ class ButtonToTheCalculator:
             self.img=self.game.calc_button_img
     def draw(self):
         self.game.screen.blit(self.img,self.rect)
+        pg.draw.rect(self.game.screen,BLACK,self.rect,3)
+
+class ButtonToTheQE:
+    def __init__(self,game):
+        self.game=game
+        self.img=self.game.qe_button_img
+        self.rect=self.img.get_rect()
+        self.clicked=False
+        self.collide_with_mouse=False
+    def update(self):
+        self.rect.left=self.game.screen_rect.left
+        self.rect.top=self.game.screen_rect.top+self.rect.height
+        if self.rect.collidepoint(pg.mouse.get_pos()):
+            self.img=self.game.qe_button_img1
+        else:
+            self.clicked=False
+            self.img=self.game.qe_button_img
+    def draw(self):
+        self.game.screen.blit(self.img,self.rect)
+        pg.draw.rect(self.game.screen,BLACK,self.rect,3)
 
 
 class CalculatorScreen:
@@ -261,12 +281,14 @@ class CalculatorScreen:
         # self.surf_rect=self.surface_for_text.get_rect()
         self.text_rect=self.rect
         self.dict_of_previous_rows={}
-        self.last_command=''
-        self.last_command_backup=''
+        self.last_command=""
+        self.last_commands_list=[]
+        self.last_command_backup=[]
         self.complete_command=''
         self.number_of_row=0
         self.result=False
         self.max_number_of_ch=0
+        self.result_set=False
     def isoperator(self,ch):
         list=["+","-","*","/","%","**"]
         isoper=False
@@ -293,18 +315,25 @@ class CalculatorScreen:
         # self.surface_for_text=pg.transform.scale(self.surface_for_text,(self.rect.width//2,self.rect.height))
         # self.surf_rect=self.surface_for_text.get_rect()
         # self.surf_rect.topleft=self.rect.topleft
+        if len(self.last_commands_list)!=len(self.last_command_backup) and self.number_of_row!=0  :
+            self.number_of_row=0
+            if self.last_command!='<':
+                self.text=self.dict_of_previous_rows[0]+self.last_command
+            else:
+                self.text=self.dict_of_previous_rows[0]
 
-        if self.last_command!=self.last_command_backup and self.number_of_row!=len(list(self.dict_of_previous_rows.keys()))-1:
-            self.number_of_row=len(list(self.dict_of_previous_rows.keys()))-1
-            self.text=self.dict_of_previous_rows[len(list(self.dict_of_previous_rows.keys()))-1]+self.last_command
 
-        self.last_command_backup=self.last_command
+
+        if self.last_commands_list!=self.last_command_backup:
+            self.last_command_backup.append(self.last_command)
 
         self.complete_command="".join([l for s in self.dict_of_previous_rows.values() for l in s])
-        if len(self.text)>0:
-            print(self.max_number_of_ch)
+
+
         if not self.result:
-            print(self.dict_of_previous_rows)
+
+
+
             if self.text_rect.left<self.rect.left and self.text!='':
                 # if self.number_of_rows%2==0 and self.number_of_rows!=0:
                 #     self.dict_of_previous_rows[self.number_of_rows]=([self.last_command+self.text])
@@ -315,19 +344,33 @@ class CalculatorScreen:
                 self.dict_of_previous_rows[self.number_of_row]=self.text
                 self.dict_of_previous_rows[self.number_of_row]=self.dict_of_previous_rows[self.number_of_row][:-1]
                 self.text=self.last_command
-
-                self.number_of_row+=1
+                self.number_of_row=len(self.dict_of_previous_rows.keys())
+                list_of_keys=list(self.dict_of_previous_rows.keys())
+                list_of_keys.insert(0,self.number_of_row)
+                list_of_values=list(self.dict_of_previous_rows.values())
+                list_of_values.append(self.text)
+                new_rows=list(zip(list_of_keys,list_of_values))
+                new_rows={k:v for k,v in new_rows}
+                self.dict_of_previous_rows=new_rows
+                self.number_of_row=0
             self.dict_of_previous_rows[self.number_of_row]=self.text
         else:
             if self.number_of_row==0:
                 for index in range(0, len(self.text), self.max_number_of_ch):
                     self.number_of_row=index//self.max_number_of_ch
                     self.dict_of_previous_rows[self.number_of_row]=(self.text[index : index + self.max_number_of_ch])
-            self.text=self.dict_of_previous_rows[self.number_of_row]
+                    list_of_keys=list(self.dict_of_previous_rows.keys())
+                    list_of_values=list(self.dict_of_previous_rows.values())
+                    list_of_keys.reverse()
+                    new_rows=list(zip(list_of_keys,list_of_values))
+                    new_rows={k:v for k,v in new_rows}
+                    self.dict_of_previous_rows=new_rows
+                self.text=self.dict_of_previous_rows[self.number_of_row]
 
 
-            print(self.dict_of_previous_rows)
-            print(self.number_of_row)
+
+
+
 
 
 
@@ -402,6 +445,150 @@ class OnCalcButton:
         elif self.value=='g':
             self.grapher_button=pg.transform.scale(self.grapher_button_or,(self.rect.width,self.rect.height))
             self.game.screen.blit(self.grapher_button,self.rect.topleft)
+
+class Degree_Radians_Input:
+    def __init__(self,game,pos):
+        self.game=game
+        self.img=pg.Surface((WIDTH//5,HEIGHT//20))
+        self.img.fill(WHITE)
+        self.rect=self.img.get_rect()
+        self.pos=pos
+        self.rect.bottomleft=pos
+        self.text=''
+    def draw(self):
+        self.game.screen.blit(self.img,self.rect)
+        self.yr=self.game.draw_text('Radians or Degrees',self.game.font,20,BLACK,self.rect.left,self.rect.y+self.rect.height/2-22)
+        self.yr=self.game.draw_text('(r or d)=',self.game.font,20,BLACK,self.rect.left,self.rect.y+self.rect.height/2-5)
+        self.game.draw_text(self.text,self.game.font,20,BLACK,self.rect.left+75,self.rect.y+self.rect.height/2-5)
+    def update(self):
+        self.rect.bottomleft=self.pos
+    def get_coords(self,pos):
+        self.pos=pos
+
+class Template:
+    def __init__(self,game):
+        self.img=pg.Surface((600,300))
+        self.img.fill(DARKGREY)
+        self.rect=self.img.get_rect()
+        self.game=game
+    def update(self):
+        if self.rect.width<=self.game.screen_rect.width:
+            self.rect=self.game.screen_rect
+        else:
+            self.rect.height=self.game.screen_rect.height
+        self.img=pg.transform.scale(self.img,(self.rect.width,self.rect.height))
+        self.rect.topleft=self.game.screen_rect.topleft
+    def draw(self):
+        self.game.screen.blit(self.img,self.rect)
+
+class Grapher_button:
+    def __init__(self,game):
+        self.game=game
+        self.img=self.game.grapher_button_img2
+        self.rect=self.img.get_rect()
+        self.clicked=False
+        self.collide_with_mouse=False
+    def update(self):
+        self.rect.left=self.game.screen_rect.left
+        self.rect.top=self.game.screen_rect.top
+        if self.rect.collidepoint(pg.mouse.get_pos()):
+            self.img=self.game.grapher_button_img1
+        else:
+            self.clicked=False
+            self.img=self.game.grapher_button_img2
+    def draw(self):
+        self.game.screen.blit(self.img,self.rect)
+        pg.draw.rect(self.game.screen,BLACK,self.rect,3)
+
+class FieldFollower:
+    def __init__(self,game,pos):
+        self.game=game
+        self.pos=vec(pos)
+        self.image=pg.Surface((self.game.qe_template.rect.width*0.1,self.game.qe_template.rect.height*0.1))
+        self.image.fill(WHITE)
+        self.rect=self.image.get_rect()
+        self.rect.topleft=self.pos
+        self.previous_ratio_x=0
+        self.previous_ratio_y=0
+        self.active=False
+        self.text=''
+        self.rect_of_text=self.rect
+        self.new_coords=False
+    def update(self):
+        self.image=pg.Surface((self.game.qe_template.rect.width*0.1,self.game.qe_template.rect.height*0.1))
+        self.image.fill(WHITE)
+        self.rect=self.image.get_rect()
+        if not self.new_coords:
+            if self.game.prev_size_for_a_ratio_qe and self.game.new_size_for_a_ratio_qe:
+                ratio_x=self.game.prev_size_for_a_ratio_qe[0]/self.game.new_size_for_a_ratio_qe[0]
+                ratio_y=self.game.prev_size_for_a_ratio_qe[1]/self.game.new_size_for_a_ratio_qe[1]
+                if ratio_x>0 and self.previous_ratio_x!=ratio_x:
+                    self.pos.x/=ratio_x
+                    self.previous_ratio_x=ratio_x
+                if ratio_y>0 and self.previous_ratio_y!=ratio_y:
+                    self.pos.y/=ratio_y
+                    self.previous_ratio_y=ratio_y
+        self.rect.topleft=self.pos
+        if self.rect.right<self.rect_of_text.right:
+            self.rect.width=self.rect_of_text.width
+            self.image=pg.Surface((self.rect.width,self.rect.height))
+            self.image.fill(WHITE)
+    def draw(self):
+        self.game.qe_template.img.blit(self.image,self.rect)
+        self.rect_of_text=self.game.draw_text_surf_change(self.text,self.game.font,int(self.game.qe_template.rect.height*0.1),BLACK,self.rect.left,self.rect.top,self.game.qe_template.img)
+
+
+
+
+class ScrollBarBarQE:
+    def __init__(self, game, pos, width,road_width):
+        self.game=game
+        self.img=pg.Surface((width,25))
+        self.img.fill(LIGHTGREY)
+        self.rect=self.img.get_rect()
+        self.pos=pos
+        self.rect.topleft=self.pos
+        self.clicked=False
+        self.dif=0
+        self.interactable=False
+        self.road_width=road_width
+    def update(self):
+        if self.interactable:
+
+            self.rect.width=self.game.screen_rect.width*(self.game.screen_rect.width/self.game.qe_template.rect.width)
+            self.img=pg.transform.scale(self.img,(int(self.rect.width),25))
+            if self.clicked:
+                self.rect.x=pg.mouse.get_pos()[0]+self.dif
+                self.pos=self.rect.topleft
+            else:
+                self.dif=self.rect.x-pg.mouse.get_pos()[0]
+            if self.rect.left<0:
+                self.rect.left=0
+                self.pos=self.rect
+            elif self.rect.right>self.game.screen_rect.width:
+                self.rect.right=self.game.screen_rect.width
+                self.pos=self.rect
+
+class ScrollBarBottomQE:
+    def __init__(self,game,pos):
+        self.game=game
+        self.pos=pos
+        self.img=pg.Surface((self.game.screen.get_width(),25))
+        self.img.fill(WHITE)
+        self.rect=self.img.get_rect()
+        self.rect.bottomleft=self.pos
+        self.bar=ScrollBarBarQE(self.game,(self.game.surf_rect.x,self.rect.top),self.game.screen_rect.width-(self.game.qe_template.rect.width-self.game.screen_rect.width),self.rect.width)
+    def draw(self):
+        if self.bar.interactable:
+            self.game.screen.blit(self.img,self.rect)
+            self.game.screen.blit(self.bar.img,self.bar.rect)
+    def update(self):
+        if self.bar.interactable:
+            self.rect.width=self.game.qe_template.rect.width
+            self.img= pg.transform.scale(self.img,(self.rect.width,self.rect.height))
+            self.rect.bottomleft=self.game.qe_template.rect.bottomleft
+            self.bar.rect.bottom=self.rect.bottom
+            self.bar.pos=self.bar.rect.topright
 
 
 

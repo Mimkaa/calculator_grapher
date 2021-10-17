@@ -1,7 +1,12 @@
 import pygame as pg
 import sys
-from settings import *
-from objects import *
+
+import requests
+
+sys.path.append('data')
+import sys
+from data.settings import *
+from data.objects import *
 from math import *
 from os import path
 from mpmath import *
@@ -61,7 +66,30 @@ class Game:
         self.screen_rect_calc=self.screen_calc.get_rect()
         self.previous_size_calc=[0,0]
         self.previous_size_graph=[0,0]
-
+        self.rad_deg_input=Degree_Radians_Input(self,(self.color_input.rect.width*2+self.color_input.rect.width//2,self.screen_height))
+        self.draw_rad_deg_input=False
+        self.button_qe=ButtonToTheQE(self)
+        self.qe_template=Template(self)
+        self.run_qe=False
+        self.grapher_button=Grapher_button(self)
+        self.previous_size_qe=[self.qe_template.rect.width,self.qe_template.rect.height]
+        self.field_1=FieldFollower(self,(self.qe_template.rect.width*0.25,self.qe_template.rect.height//2))
+        self.field_1.active=True
+        self.field_2=FieldFollower(self,(self.qe_template.rect.width*0.45,self.qe_template.rect.height//2))
+        self.field_3=FieldFollower(self,(self.qe_template.rect.width*0.65,self.qe_template.rect.height//2))
+        self.dict_of_fields={self.field_1:self.field_1.active,self.field_2:self.field_2.active,self.field_3:self.field_3.active}
+        self.prev_size_for_a_ratio_qe=[]
+        self.new_size_for_a_ratio_qe=[self.qe_template.rect.width,self.qe_template.rect.height]
+        self.rect_of_xpt=self.field_1.rect
+        self.rect_of_x=self.field_2.rect
+        self.result_eq=[]
+        self.previous_e=[]
+        self.rect_of_zero=self.qe_template.rect
+        self.scrollbar_qe=ScrollBarBottomQE(self,(0,self.qe_template.rect.bottom))
+        self.rect_eq=self.qe_template.rect
+        self.rect_x1=self.qe_template.rect
+        self.rect_x2=self.qe_template.rect
+        self.list_of_rects_to_check=[self.rect_x1,self.rect_x2,self.rect_eq,self.rect_of_zero]
 
     def apply_rect(self, rect):
         return rect.move([i*-1 for i in self.surf_rect.topleft])
@@ -118,33 +146,33 @@ class Game:
         return text_rect
 
 
-    # def draw_text_surf_change(self, text, font_name, size, color, x, y,surf, align="nw"):
-    #     font = pg.font.Font(font_name, size)
-    #     text_surface = font.render(text, True, color)
-    #     text_rect = text_surface.get_rect()
-    #     if align == "nw":
-    #         text_rect.topleft = (x, y)
-    #     if align == "ne":
-    #         text_rect.topright = (x, y)
-    #     if align == "sw":
-    #         text_rect.bottomleft = (x, y)
-    #     if align == "se":
-    #         text_rect.bottomright = (x, y)
-    #     if align == "n":
-    #         text_rect.midtop = (x, y)
-    #     if align == "s":
-    #         text_rect.midbottom = (x, y)
-    #     if align == "e":
-    #         text_rect.midright = (x, y)
-    #     if align == "w":
-    #         text_rect.midleft = (x, y)
-    #     if align == "center":
-    #         text_rect.center = (x, y)
-    #     surf.blit(text_surface, text_rect)
-    #     return text_rect
+    def draw_text_surf_change(self, text, font_name, size, color, x, y,surf, align="nw"):
+        font = pg.font.Font(font_name, size)
+        text_surface = font.render(text, True, color)
+        text_rect = text_surface.get_rect()
+        if align == "nw":
+            text_rect.topleft = (x, y)
+        if align == "ne":
+            text_rect.topright = (x, y)
+        if align == "sw":
+            text_rect.bottomleft = (x, y)
+        if align == "se":
+            text_rect.bottomright = (x, y)
+        if align == "n":
+            text_rect.midtop = (x, y)
+        if align == "s":
+            text_rect.midbottom = (x, y)
+        if align == "e":
+            text_rect.midright = (x, y)
+        if align == "w":
+            text_rect.midleft = (x, y)
+        if align == "center":
+            text_rect.center = (x, y)
+        surf.blit(text_surface, text_rect)
+        return text_rect
 
     def load_data(self):
-        self.game_folder = path.dirname(__file__)
+        self.game_folder = path.join('data')
         self.font=path.join(self.game_folder, 'ARIALI 1.TTF')
         self.calc_font=path.join(self.game_folder, 'New Athletic M54.ttf')
         self.calc_button_img=pg.image.load(path.join(self.game_folder, 'calculator_button.png')).convert_alpha()
@@ -156,6 +184,11 @@ class Game:
         self.calc_on_button_img_orange=pg.image.load(path.join(self.game_folder, 'button_on_calc_orange.png')).convert_alpha()
         self.calc_on_button_img_orange1=pg.image.load(path.join(self.game_folder, 'button_on_calc_orange1.png')).convert_alpha()
         self.grapher_button_img=pg.image.load(path.join(self.game_folder, 'grapher_button.png')).convert_alpha()
+        self.grapher_button_img1=pg.image.load(path.join(self.game_folder, 'grapher_button1.png')).convert_alpha()
+        self.grapher_button_img2=pg.image.load(path.join(self.game_folder, 'grapher_button2.png')).convert_alpha()
+        self.qe_button_img=pg.image.load(path.join(self.game_folder, 'quadratic_equation_button.png')).convert_alpha()
+        self.qe_button_img1=pg.image.load(path.join(self.game_folder, 'quadratic_equation_button1.png')).convert_alpha()
+
 
 
 
@@ -180,6 +213,10 @@ class Game:
                 self.events_calc()
                 self.update_calc()
                 self.draw_calc()
+            elif self.run_qe:
+                self.events_qe()
+                self.update_qe()
+                self.draw_qe()
 
     def quit(self):
         pg.quit()
@@ -207,8 +244,9 @@ class Game:
                     else:
                         starting_point=-tiles_width*self.tilesize
                     for x in range(starting_point,tiles_width*self.tilesize):
-                            if 'tan' in fn or 'sin' in fn or 'cos' in fn or 'cot' in fn:
-                                x=x*pi/180
+                            if  'cos' in fn or  'sin' in fn or   'tan' in fn or  'cot' in fn:
+                                if self.rad_deg_input.text=='' or self.rad_deg_input.text=='d':
+                                    x=x*pi/180
                             if 'asin' in fn  or 'acos' in fn:
                                 if x>=1:
                                     x=1
@@ -244,8 +282,9 @@ class Game:
                     else:
                         starting_point=-tiles_width*self.tilesize
                     for x in range(starting_point,tiles_width*self.tilesize):
-                            if 'tan' in fn or 'sin' in fn or 'cos' in fn or 'cot' in fn:
-                                x=x*pi/180
+                            if  'cos' in fn or  'sin' in fn or   'tan' in fn or  'cot' in fn:
+                                if self.rad_deg_input.text=='' or self.rad_deg_input.text=='d':
+                                    x=x*pi/180
                             if 'asin' in fn  or 'acos' in fn:
                                 if x>=1:
                                     x=1
@@ -264,6 +303,71 @@ class Game:
     def change_size_with_the_same_quality(self,surf,var):
         changed_surf=pg.transform.scale(surf,(var[0],var[1]))
         return changed_surf
+
+    def qe_logic(self):
+        y=float(self.field_2.text)
+        x=float(self.field_1.text)
+        z=float(self.field_3.text)
+        discri = y * y - 4 * x * z
+        sqrtval = sqrt(abs(discri))
+        if x!=0:
+            if discri > 0:
+                return [" real and different roots ",str((-y + sqrtval)/(2 * x)),str((-y - sqrtval)/(2 * x))]
+            elif discri == 0:
+                return [" real and same roots",str(-y / (2 * x))]
+            else:
+                return ["Complex Roots",str(- y / (2 * x))+" + i*"+str(sqrtval/(2 * x)),str(- y / (2 * x))+" - i*"+str(sqrtval/(2 * x))]
+        else:
+            return ['invalid equation']
+
+    def sorting(self,r):
+        return r.right
+
+    def update_qe(self):
+        all_not_False=False
+        for v in self.dict_of_fields.values():
+            if v:
+                all_not_False=True
+        if not all_not_False:
+            self.dict_of_fields[self.field_1]=True
+        self.screen_rect=self.screen.get_rect()
+        self.qe_template.update()
+        self.field_3.update()
+        self.field_2.update()
+        self.field_1.update()
+
+        self.field_2.pos.y=self.rect_of_xpt.top
+        self.field_2.pos.x=self.rect_of_xpt.right+10
+
+        self.field_3.pos.y=self.rect_of_x.top
+        self.field_3.pos.x=self.rect_of_x.right+10
+        self.grapher_button.update()
+        #if self.rect_of_zero.right>self.qe_template.rect.right:
+
+        self.list_of_rects_to_check=[self.rect_x1,self.rect_x2,self.rect_eq,self.rect_of_zero]
+        self.list_of_rects_to_check.sort(reverse=True,key=self.sorting)
+        #print([r.right for r in self.list_of_rects_to_check])
+
+        # all_in=True
+        # for r in self.list_of_rects_to_check:
+        #     if r.right>self.screen_rect.right:
+        #         all_in=False
+        # if not all_in:
+        #     self.qe_template.rect.width+=self.list_of_rects_to_check[0].right-self.qe_template.rect.right
+        # else:
+        #     self.qe_template.rect=self.screen_rect
+        self.qe_template.rect.width+=self.list_of_rects_to_check[0].right-self.qe_template.rect.right
+
+        if self.rect_eq.right>self.qe_template.rect.right:
+            pass
+        if self.qe_template.rect.right>self.screen_rect.right:
+            self.scrollbar_qe.bar.interactable=True
+        else:
+            self.scrollbar_qe.bar.interactable=False
+
+        self.scrollbar_qe.update()
+        self.scrollbar_qe.bar.update()
+        self.qe_template.rect.left=-self.scrollbar_qe.bar.rect.left/(self.screen_rect.width/self.qe_template.rect.width)
 
     def update_calc(self):
 
@@ -295,7 +399,7 @@ class Game:
         self.calc_background_new=self.change_size_with_the_same_quality(self.calc_background,(self.screen_rect.width,self.screen_rect.height))
         self.culc_screen.update()
 
-        # buttons` action
+
 
 
     def update(self):
@@ -304,6 +408,7 @@ class Game:
         self.screen_rect=self.screen.get_rect()
         # update portion of the game loop
         self.calc_button.update()
+        self.button_qe.update()
         if self.surf_rect.right<self.screen_rect.right:
             self.surf_rect.left=self.screen_rect.left
 
@@ -405,6 +510,32 @@ class Game:
             button.draw()
         pg.display.flip()
 
+    def draw_qe(self):
+
+        self.qe_template.img.fill(DARKGREY)
+        self.field_1.draw()
+        xpt=self.draw_text_surf_change('*x**2+',self.font,int(self.qe_template.rect.height*0.1),CYAN,self.field_1.rect.right+10,self.field_1.rect.top,self.qe_template.img)
+        self.rect_of_xpt=xpt
+        self.field_2.draw()
+        x=self.draw_text_surf_change('*x+',self.font,int(self.qe_template.rect.height*0.1),CYAN,self.field_2.rect.right+10,self.field_2.rect.top,self.qe_template.img)
+        self.rect_of_x=x
+        self.field_3.draw()
+        self.rect_of_zero=self.draw_text_surf_change('=0',self.font,int(self.qe_template.rect.height*0.1),CYAN,self.field_3.rect.right+10,self.field_3.rect.top,self.qe_template.img)
+        if len(self.result_eq)>0:
+            rect=self.draw_text_surf_change(self.result_eq[0],self.font,int(self.qe_template.rect.height*0.07),CYAN,self.field_1.rect.left,self.field_1.rect.bottom+self.field_1.rect.height-6,self.qe_template.img)
+            if len(self.previous_e)>0:
+                for n,p in enumerate(self.previous_e):
+                    if self.previous_e[n][0]!='-' and self.previous_e[n][0]!='+' and n!=0:
+                        self.previous_e[n]="+"+self.previous_e[n]
+                self.rect_eq=self.draw_text_surf_change(self.previous_e[0]+"*x**2"+self.previous_e[1]+"*x"+self.previous_e[2]+'=0:',self.font,int(self.qe_template.rect.height*0.07),CYAN,rect.left,rect.top-rect.height,self.qe_template.img)
+            if self.result_eq[0]!='invalid equation':
+                self.rect_x1=self.draw_text_surf_change('x1='+self.result_eq[1],self.font,int(self.qe_template.rect.height*0.07),CYAN,rect.left,rect.bottom,self.qe_template.img)
+                self.rect_x2=self.draw_text_surf_change('x2='+self.result_eq[2],self.font,int(self.qe_template.rect.height*0.07),CYAN,rect.left,rect.bottom+rect.height,self.qe_template.img)
+        self.qe_template.draw()
+        self.grapher_button.draw()
+        self.scrollbar_qe.draw()
+        pg.display.flip()
+
     def draw(self):
         self.screen.fill(BLACK)
         self.surf.fill(BGCOLOR)
@@ -426,6 +557,8 @@ class Game:
         if self.draw_scroll_bar:
             self.scrollbar_bottom.draw()
             self.scrollbar_right.draw()
+        if self.draw_rad_deg_input:
+            self.rad_deg_input.draw()
 
         self.pointer.draw()
         list_of_coords=[]
@@ -442,7 +575,7 @@ class Game:
             self.draw_text(str(coords),self.font,20,WHITE,self.pointer.rect.x+10,self.pointer.rect.y-10)
 
         self.calc_button.draw()
-
+        self.button_qe.draw()
         pg.display.flip()
 
     def recur_factorial(self,n):
@@ -452,6 +585,63 @@ class Game:
            return ("Error")
         else:
            return n*self.recur_factorial(n-1)
+
+    def events_qe(self):
+        for event in pg.event.get():
+            if event.type == pg.QUIT:
+                self.quit()
+            if event.type==pg.MOUSEBUTTONDOWN and event.button == 1 and pg.Rect.collidepoint(self.grapher_button.rect,pg.mouse.get_pos()):
+                    print(self.previous_size_graph)
+                    self.screen = pg.display.set_mode((self.previous_size_graph[0], self.previous_size_graph[1]),pg.RESIZABLE)
+                    if not self.run_graph:
+                        self.previous_size_qe=[self.screen_rect.width,self.screen_rect.height]
+                    self.run_graph=True
+                    self.run_qe=False
+            if  event.type==pg.VIDEORESIZE:
+                if self.new_size_for_a_ratio_qe:
+                    self.prev_size_for_a_ratio_qe=self.new_size_for_a_ratio_qe
+                self.screen = pg.display.set_mode((event.w, event.h),pg.RESIZABLE)
+
+                self.new_size_for_a_ratio_qe=(event.w, event.h)
+                self.screen_rect=self.screen.get_rect()
+            for f in list(self.dict_of_fields.keys()):
+                if event.type == pg.KEYDOWN:
+                    if self.dict_of_fields[f] :
+                        if event.key==pg.K_BACKSPACE:
+                                f.text=f.text[:-1]
+                        elif event.key!=pg.K_RETURN:
+                            if event.unicode.isnumeric() or event.unicode=='.' or event.unicode=='-':
+                                f.text+=event.unicode
+                        if event.key==pg.K_RETURN and f.text!='':
+                            self.dict_of_fields[f]=False
+                            index=list(self.dict_of_fields.keys()).index(f)
+                            if index<2:
+                                self.dict_of_fields[list(self.dict_of_fields.keys())[index+1]]=True
+                            else:
+                                self.result_eq=self.qe_logic()
+                                self.previous_e=[self.field_1.text,self.field_2.text,self.field_3.text]
+                                self.field_1.text=''
+                                self.field_2.text=''
+                                self.field_3.text=''
+            if event.type==pg.MOUSEBUTTONDOWN and event.button == 1:
+                if pg.Rect.collidepoint(self.scrollbar_qe.bar.rect,pg.mouse.get_pos()):
+                    self.scrollbar_qe.bar.clicked=True
+            elif event.type==pg.MOUSEBUTTONUP and event.button == 1 and self.scrollbar_qe.bar.clicked :
+                    self.scrollbar_qe.bar.clicked=False
+            # if event.type == pg.KEYDOWN:
+            #     if  event.key==pg.K_c:
+            #         self.previous_e=[]
+            #         self.result_eq=[]
+            #         self.rect_eq=self.qe_template.rect
+            #         self.rect_x2=self.qe_template.rect
+            #         self.rect_x1=self.qe_template.rect
+            #         self.rect_of_zero=self.qe_template.rect
+
+
+
+
+
+
 
     def events_calc(self):
         for event in pg.event.get():
@@ -482,16 +672,25 @@ class Game:
                 self.screen_rect=self.screen.get_rect()
 
             # buttons` action
-            if len(self.culc_screen.text)==1 and event.type==pg.MOUSEBUTTONDOWN and event.button == 1 and pg.Rect.collidepoint(self.dict_of_buttons['<'].rect,pg.mouse.get_pos()):
+            if event.type==pg.MOUSEBUTTONDOWN and event.button == 1 and self.culc_screen.text=='Error':
+                self.culc_screen.text=''
 
+
+            if len(self.culc_screen.text)>1 and event.type==pg.MOUSEBUTTONDOWN and event.button == 1 and pg.Rect.collidepoint(self.dict_of_buttons['<'].rect,pg.mouse.get_pos()):
+                self.culc_screen.last_command='<'
+                self.culc_screen.last_commands_list.append(self.culc_screen.last_command)
+                self.culc_screen.result=False
+                self.culc_screen.text=self.culc_screen.dict_of_previous_rows[0]
+                self.culc_screen.text=self.culc_screen.text[:-1]
+            elif len(self.culc_screen.text)==1 and event.type==pg.MOUSEBUTTONDOWN and event.button == 1 and pg.Rect.collidepoint(self.dict_of_buttons['<'].rect,pg.mouse.get_pos()):
+                self.culc_screen.last_command='<'
                 if len(list(self.culc_screen.dict_of_previous_rows.keys()))>=2:
                     del self.culc_screen.dict_of_previous_rows[self.culc_screen.number_of_row]
-                    self.culc_screen.number_of_row-=1
-                    self.culc_screen.text=self.culc_screen.dict_of_previous_rows[self.culc_screen.number_of_row]+self.culc_screen.dict_of_previous_rows[self.culc_screen.number_of_row][-1]
+                    self.culc_screen.number_of_row+=1
+                    self.culc_screen.text=self.culc_screen.dict_of_previous_rows[self.culc_screen.number_of_row]
+                self.culc_screen.dict_of_previous_rows={k-1:v for k,v in self.culc_screen.dict_of_previous_rows.items()}
+                self.culc_screen.number_of_row-=1
 
-            if event.type==pg.MOUSEBUTTONDOWN and event.button == 1 and pg.Rect.collidepoint(self.dict_of_buttons['<'].rect,pg.mouse.get_pos()):
-                self.culc_screen.result=False
-                self.culc_screen.text=self.culc_screen.text[:-1]
             if event.type==pg.MOUSEBUTTONDOWN and event.button == 1 and pg.Rect.collidepoint(self.dict_of_buttons['C'].rect,pg.mouse.get_pos()):
                 self.culc_screen.result=False
                 self.culc_screen.text=''
@@ -501,149 +700,199 @@ class Game:
             if event.type==pg.MOUSEBUTTONDOWN and event.button == 1 and pg.Rect.collidepoint(self.dict_of_buttons['1'].rect,pg.mouse.get_pos()):
                 self.culc_screen.result=False
                 self.culc_screen.last_command='1'
+                self.culc_screen.last_commands_list.append(self.culc_screen.last_command)
                 self.culc_screen.text+='1'
             if event.type==pg.MOUSEBUTTONDOWN and event.button == 1 and pg.Rect.collidepoint(self.dict_of_buttons['2'].rect,pg.mouse.get_pos()):
                 self.culc_screen.result=False
                 self.culc_screen.last_command='2'
+                self.culc_screen.last_commands_list.append(self.culc_screen.last_command)
                 self.culc_screen.text+='2'
             if event.type==pg.MOUSEBUTTONDOWN and event.button == 1 and pg.Rect.collidepoint(self.dict_of_buttons['3'].rect,pg.mouse.get_pos()):
                 self.culc_screen.result=False
                 self.culc_screen.last_command='3'
+                self.culc_screen.last_commands_list.append(self.culc_screen.last_command)
                 self.culc_screen.text+='3'
             if event.type==pg.MOUSEBUTTONDOWN and event.button == 1 and pg.Rect.collidepoint(self.dict_of_buttons['4'].rect,pg.mouse.get_pos()):
                 self.culc_screen.result=False
                 self.culc_screen.last_command='4'
+                self.culc_screen.last_commands_list.append(self.culc_screen.last_command)
                 self.culc_screen.text+='4'
             if event.type==pg.MOUSEBUTTONDOWN and event.button == 1 and pg.Rect.collidepoint(self.dict_of_buttons['5'].rect,pg.mouse.get_pos()):
                 self.culc_screen.result=False
                 self.culc_screen.last_command='5'
+                self.culc_screen.last_commands_list.append(self.culc_screen.last_command)
                 self.culc_screen.text+='5'
             if event.type==pg.MOUSEBUTTONDOWN and event.button == 1 and pg.Rect.collidepoint(self.dict_of_buttons['6'].rect,pg.mouse.get_pos()):
                 self.culc_screen.result=False
                 self.culc_screen.last_command='6'
+                self.culc_screen.last_commands_list.append(self.culc_screen.last_command)
                 self.culc_screen.text+='6'
             if event.type==pg.MOUSEBUTTONDOWN and event.button == 1 and pg.Rect.collidepoint(self.dict_of_buttons['7'].rect,pg.mouse.get_pos()):
                 self.culc_screen.result=False
                 self.culc_screen.last_command='7'
+                self.culc_screen.last_commands_list.append(self.culc_screen.last_command)
                 self.culc_screen.text+='7'
             if event.type==pg.MOUSEBUTTONDOWN and event.button == 1 and pg.Rect.collidepoint(self.dict_of_buttons['8'].rect,pg.mouse.get_pos()):
                 self.culc_screen.result=False
                 self.culc_screen.last_command='8'
+                self.culc_screen.last_commands_list.append(self.culc_screen.last_command)
                 self.culc_screen.text+='8'
             if event.type==pg.MOUSEBUTTONDOWN and event.button == 1 and pg.Rect.collidepoint(self.dict_of_buttons['9'].rect,pg.mouse.get_pos()):
                 self.culc_screen.result=False
                 self.culc_screen.last_command='9'
+                self.culc_screen.last_commands_list.append(self.culc_screen.last_command)
                 self.culc_screen.text+='9'
             if event.type==pg.MOUSEBUTTONDOWN and event.button == 1 and pg.Rect.collidepoint(self.dict_of_buttons['0'].rect,pg.mouse.get_pos()):
                 self.culc_screen.result=False
                 self.culc_screen.last_command='0'
+                self.culc_screen.last_commands_list.append(self.culc_screen.last_command)
                 self.culc_screen.text+='0'
             if event.type==pg.MOUSEBUTTONDOWN and event.button == 1 and pg.Rect.collidepoint(self.dict_of_buttons['.'].rect,pg.mouse.get_pos()):
                 self.culc_screen.result=False
                 self.culc_screen.last_command='.'
+                self.culc_screen.last_commands_list.append(self.culc_screen.last_command)
                 self.culc_screen.text+='.'
             if event.type==pg.MOUSEBUTTONDOWN and event.button == 1 and pg.Rect.collidepoint(self.dict_of_buttons['('].rect,pg.mouse.get_pos()):
                 self.culc_screen.result=False
                 self.culc_screen.last_command='('
+                self.culc_screen.last_commands_list.append(self.culc_screen.last_command)
                 self.culc_screen.text+='('
             if event.type==pg.MOUSEBUTTONDOWN and event.button == 1 and pg.Rect.collidepoint(self.dict_of_buttons[')'].rect,pg.mouse.get_pos()):
                 self.culc_screen.result=False
                 self.culc_screen.last_command=')'
+                self.culc_screen.last_commands_list.append(self.culc_screen.last_command)
                 self.culc_screen.text+=')'
             if event.type==pg.MOUSEBUTTONDOWN and event.button == 1 and pg.Rect.collidepoint(self.dict_of_buttons['pi'].rect,pg.mouse.get_pos()):
                 self.culc_screen.result=False
                 self.culc_screen.last_command='pi'
+                self.culc_screen.last_commands_list.append(self.culc_screen.last_command)
                 self.culc_screen.text+='pi'
             if event.type==pg.MOUSEBUTTONDOWN and event.button == 1 and pg.Rect.collidepoint(self.dict_of_buttons['sin'].rect,pg.mouse.get_pos()):
                 self.culc_screen.result=False
                 self.culc_screen.last_command='sin('
+                self.culc_screen.last_commands_list.append(self.culc_screen.last_command)
                 self.culc_screen.text+='sin('
             if event.type==pg.MOUSEBUTTONDOWN and event.button == 1 and pg.Rect.collidepoint(self.dict_of_buttons['cos'].rect,pg.mouse.get_pos()):
                 self.culc_screen.result=False
                 self.culc_screen.last_command='cos('
+                self.culc_screen.last_commands_list.append(self.culc_screen.last_command)
                 self.culc_screen.text+='cos('
             if event.type==pg.MOUSEBUTTONDOWN and event.button == 1 and pg.Rect.collidepoint(self.dict_of_buttons['tan'].rect,pg.mouse.get_pos()):
                 self.culc_screen.result=False
                 self.culc_screen.last_command='tan('
+                self.culc_screen.last_commands_list.append(self.culc_screen.last_command)
                 self.culc_screen.text+='tan('
             if event.type==pg.MOUSEBUTTONDOWN and event.button == 1 and pg.Rect.collidepoint(self.dict_of_buttons['+'].rect,pg.mouse.get_pos()):
                 self.culc_screen.result=False
                 self.culc_screen.last_command='+'
+                self.culc_screen.last_commands_list.append(self.culc_screen.last_command)
                 self.culc_screen.text+="+"
             if event.type==pg.MOUSEBUTTONDOWN and event.button == 1 and pg.Rect.collidepoint(self.dict_of_buttons['-'].rect,pg.mouse.get_pos()):
                 self.culc_screen.result=False
                 self.culc_screen.last_command='-'
+                self.culc_screen.last_commands_list.append(self.culc_screen.last_command)
                 self.culc_screen.text+="-"
             if event.type==pg.MOUSEBUTTONDOWN and event.button == 1 and pg.Rect.collidepoint(self.dict_of_buttons['*'].rect,pg.mouse.get_pos()):
                 self.culc_screen.result=False
                 self.culc_screen.last_command='*'
+                self.culc_screen.last_commands_list.append(self.culc_screen.last_command)
                 self.culc_screen.text+="*"
             if event.type==pg.MOUSEBUTTONDOWN and event.button == 1 and pg.Rect.collidepoint(self.dict_of_buttons['/'].rect,pg.mouse.get_pos()):
                 self.culc_screen.result=False
                 self.culc_screen.last_command='/'
+                self.culc_screen.last_commands_list.append(self.culc_screen.last_command)
                 self.culc_screen.text+="/"
             if event.type==pg.MOUSEBUTTONDOWN and event.button == 1 and pg.Rect.collidepoint(self.dict_of_buttons['%'].rect,pg.mouse.get_pos()):
                 self.culc_screen.result=False
                 self.culc_screen.last_command='%'
+                self.culc_screen.last_commands_list.append(self.culc_screen.last_command)
                 self.culc_screen.text+="%"
             if event.type==pg.MOUSEBUTTONDOWN and event.button == 1 and pg.Rect.collidepoint(self.dict_of_buttons['deg'].rect,pg.mouse.get_pos()):
                 self.culc_screen.result=False
                 self.culc_screen.last_command='degrees('
+                self.culc_screen.last_commands_list.append(self.culc_screen.last_command)
                 self.culc_screen.text+="degrees("
             if event.type==pg.MOUSEBUTTONDOWN and event.button == 1 and pg.Rect.collidepoint(self.dict_of_buttons['lg'].rect,pg.mouse.get_pos()):
                 self.culc_screen.result=False
                 self.culc_screen.last_command='log('
+                self.culc_screen.last_commands_list.append(self.culc_screen.last_command)
                 self.culc_screen.text+="log("
             if event.type==pg.MOUSEBUTTONDOWN and event.button == 1 and pg.Rect.collidepoint(self.dict_of_buttons['sqrt'].rect,pg.mouse.get_pos()):
                 self.culc_screen.result=False
                 self.culc_screen.last_command='sqrt('
+                self.culc_screen.last_commands_list.append(self.culc_screen.last_command)
                 self.culc_screen.text+="sqrt("
             if event.type==pg.MOUSEBUTTONDOWN and event.button == 1 and pg.Rect.collidepoint(self.dict_of_buttons['rad'].rect,pg.mouse.get_pos()):
                 self.culc_screen.result=False
                 self.culc_screen.last_command='radians('
+                self.culc_screen.last_commands_list.append(self.culc_screen.last_command)
                 self.culc_screen.text+="radians("
             if event.type==pg.MOUSEBUTTONDOWN and event.button == 1 and pg.Rect.collidepoint(self.dict_of_buttons[','].rect,pg.mouse.get_pos()):
                 self.culc_screen.result=False
                 self.culc_screen.last_command=','
+                self.culc_screen.last_commands_list.append(self.culc_screen.last_command)
                 self.culc_screen.text+=","
             if event.type==pg.MOUSEBUTTONDOWN and event.button == 1 and pg.Rect.collidepoint(self.dict_of_buttons['^'].rect,pg.mouse.get_pos()):
                 self.culc_screen.result=False
                 self.culc_screen.last_command='**'
+                self.culc_screen.last_commands_list.append(self.culc_screen.last_command)
                 self.culc_screen.text+="**"
             if event.type==pg.MOUSEBUTTONDOWN and event.button == 1 and pg.Rect.collidepoint(self.dict_of_buttons['e'].rect,pg.mouse.get_pos()):
                 self.culc_screen.result=False
                 self.culc_screen.last_command='exp(1)'
+                self.culc_screen.last_commands_list.append(self.culc_screen.last_command)
                 self.culc_screen.text+='exp(1)'
             if event.type==pg.MOUSEBUTTONDOWN and event.button == 1 and pg.Rect.collidepoint(self.dict_of_buttons['='].rect,pg.mouse.get_pos()):
 
                     try:
 
+                        num=0
                         self.culc_screen.text=str(eval(self.culc_screen.complete_command))
+
+                        for l in str(eval(self.culc_screen.complete_command)):
+                            if l=="0":
+                                num+=1
+                        print(num)
+                        if num>5:
+                            self.culc_screen.text=str(eval(self.culc_screen.complete_command))[:3]
+
                         self.culc_screen.result=True
                         self.culc_screen.number_of_row=0
                         self.culc_screen.complete_command=''
                         self.culc_screen.dict_of_previous_rows.clear()
+
                     except SyntaxError:
                         self.culc_screen.text="Error"
                     except NameError:
                         self.culc_screen.text="Error"
+
             if event.type==pg.MOUSEBUTTONDOWN and event.button == 1 and pg.Rect.collidepoint(self.dict_of_buttons['x!'].rect,pg.mouse.get_pos()):
                 self.culc_screen.result=False
-                frac,whole=modf(float(self.culc_screen.complete_command))
-                if frac!=0:
+                if self.culc_screen.complete_command!='':
+                    frac,whole=modf(float(self.culc_screen.complete_command))
+                if self.culc_screen.complete_command=="" or self.culc_screen.complete_command=="0":
+                    self.culc_screen.text=str(1)
+                elif frac!=0:
                     self.culc_screen.text=str(self.recur_factorial(float(self.culc_screen.text)))
                 else:
                     self.culc_screen.text=str(self.recur_factorial(int(self.culc_screen.text)))
             if event.type==pg.MOUSEBUTTONDOWN and event.button == 1 and pg.Rect.collidepoint(self.dict_of_buttons['1/x'].rect,pg.mouse.get_pos()):
-                self.culc_screen.result=False
-                self.culc_screen.text=str(1/float(self.culc_screen.complete_command))
-                self.culc_screen.number_of_row=0
-                self.culc_screen.complete_command=''
-                self.culc_screen.dict_of_previous_rows.clear()
-
+                if self.culc_screen.complete_command!='' and self.culc_screen.complete_command!='0':
+                    self.culc_screen.result=False
+                    self.culc_screen.text=str(1/float(self.culc_screen.complete_command))
+                    self.culc_screen.number_of_row=0
+                    self.culc_screen.complete_command=''
+                    self.culc_screen.dict_of_previous_rows.clear()
+                else:
+                    self.culc_screen.result=False
+                    self.culc_screen.text='Error'
+                    self.culc_screen.number_of_row=0
+                    self.culc_screen.complete_command=''
+                    self.culc_screen.dict_of_previous_rows.clear()
             if event.type==pg.MOUSEWHEEL and pg.Rect.collidepoint(self.culc_screen.rect,pg.mouse.get_pos()):
 
-                if event.y==-1:
+                if event.y==-1 and len(self.culc_screen.dict_of_previous_rows)>=2:
+                    self.culc_screen.result=False
                     self.culc_screen.number_of_row-=1
                     if self.culc_screen.number_of_row>=0 and self.culc_screen.number_of_row<=len(list(self.culc_screen.dict_of_previous_rows.keys()))-1:
                         self.culc_screen.text=self.culc_screen.dict_of_previous_rows[self.culc_screen.number_of_row]
@@ -653,7 +902,8 @@ class Game:
                         self.culc_screen.number_of_row=len(list(self.culc_screen.dict_of_previous_rows.keys()))-1
 
 
-                if event.y==1:
+                if event.y==1 and len(self.culc_screen.dict_of_previous_rows)>=2:
+                    self.culc_screen.result=False
                     self.culc_screen.number_of_row+=1
                     if self.culc_screen.number_of_row>=0 and self.culc_screen.number_of_row<=len(list(self.culc_screen.dict_of_previous_rows.keys()))-1 :
                         self.culc_screen.text=self.culc_screen.dict_of_previous_rows[self.culc_screen.number_of_row]
@@ -683,6 +933,16 @@ class Game:
                     self.run_calc=True
                     self.screen_rect=self.screen.get_rect()
 
+            if event.type==pg.MOUSEBUTTONDOWN and event.button == 1 and pg.Rect.collidepoint(self.button_qe.rect,pg.mouse.get_pos()):
+                self.button_qe.clicked=True
+                if self.button_qe.clicked:
+                    self.screen = pg.display.set_mode((self.previous_size_qe[0],self.previous_size_qe[1]),pg.RESIZABLE)
+                    if not self.run_qe:
+                        self.previous_size_graph=[self.screen_rect.width,self.screen_rect.height]
+                    self.run_graph=False
+                    self.run_calc=False
+                    self.run_qe=True
+                    self.screen_rect=self.screen.get_rect()
 
                     #pg.display.iconify()
             # if event.type==pg.MOUSEBUTTONUP and event.button == 1 and pg.Rect.collidepoint(self.calc_button.rect,pg.mouse.get_pos()):
@@ -747,7 +1007,7 @@ class Game:
                     self.draw_legend=not self.draw_legend
                 if event.key == pg.K_v and pg.key.get_mods() & pg.KMOD_CTRL:
                     self.color_input.text=pyperclip.paste()
-                if event.key==pg.K_BACKSPACE and self.input.text=='':
+                if event.key==pg.K_BACKSPACE and self.input.text=='' and not self.draw_rad_deg_input:
                     if len(list(self.dict_of_points.keys()))>0:
                         key=list(self.dict_of_points.keys())[-1]
                         value=list(self.dict_of_points.values())[-1]
@@ -769,7 +1029,7 @@ class Game:
                         self.input.text=self.input.text[:-1]
                     elif event.key!=pg.K_SPACE and event.key!=pg.K_RETURN and not self.color_input_text:
                         self.input.text+=event.unicode
-                    if  event.key==pg.K_RETURN and  self.color_input.text=='':
+                    if  event.key==pg.K_RETURN and  self.color_input.text=='' :
                         self.color_input_text= not self.color_input_text
                         if  not self.color_input_text:
                             self.function_input=False
@@ -804,7 +1064,7 @@ class Game:
                         self.color_input.text=self.color_input.text[:-1]
                     elif  event.key!=pg.K_RETURN and event.key!=pg.K_SPACE and event.key!=pg.K_v:
                         self.color_input.text+=event.unicode
-                    if  event.key==pg.K_RETURN and self.color_input.text!='':
+                    if  event.key==pg.K_RETURN and self.color_input.text!='' :
                         self.function_input=not self.function_input
                         self.color_input_text=not self.color_input_text
                         try:
@@ -832,6 +1092,20 @@ class Game:
                         self.graph_color_dict[self.input.text]=self.color_input.text
                         self.input.text=""
                         self.color_input.text=''
+
+                if   event.key==pg.K_z:
+                    self.draw_rad_deg_input=not self.draw_rad_deg_input
+
+                if self.draw_rad_deg_input and event.key!=pg.K_RETURN and not self.function_input and event.key!=pg.K_z:
+                    if event.key==pg.K_BACKSPACE :
+                        self.rad_deg_input.text=self.rad_deg_input.text[:-1]
+                    else:
+                        self.rad_deg_input.text+=event.unicode
+                        self.renew_graphs()
+
+
+
+
 
 
 # create the game object
