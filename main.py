@@ -6,6 +6,7 @@ import requests
 sys.path.append('data')
 import sys
 from data.settings import *
+
 from data.objects import *
 from math import *
 from os import path
@@ -13,7 +14,11 @@ from mpmath import *
 from random import randint
 import pyperclip
 from os import path
-
+import numpy as np
+from numpy import gradient,isnan
+import sympy
+import pygetwindow as gw
+np.seterr(divide='ignore', invalid='ignore')
 
 
 
@@ -25,6 +30,7 @@ class Game:
         self.screen_width=1024
         self.screen_height=768
         self.tilesize=32
+        self.just_changed_size=False
         self.number_of_tiles_width=self.screen_width/self.tilesize
         self.number_of_tiles_height=self.screen_height/self.tilesize
         self.monitor_size=[pg.display.Info().current_w,pg.display.Info().current_h]
@@ -90,7 +96,19 @@ class Game:
         self.rect_x1=self.qe_template.rect
         self.rect_x2=self.qe_template.rect
         self.list_of_rects_to_check=[self.rect_x1,self.rect_x2,self.rect_eq,self.rect_of_zero]
-
+        self.decriment=self.tilesize
+        self.list_of_x=[]
+        # derivatives
+        self.dict_of_derivatives={}
+        self.der_inp=DerivativeManager(self,(0,self.screen_height))
+        self.draw_insruction=False
+        self.derivative_legend=DerivativeLegend(self,(self.screen_width,0),self.der_inp.colors)
+        #integral
+        self.integral_input=IntegralManager(self,(0,self.screen_height))
+        self.dict_of_int_rects={}
+        self.last_intergral={}
+        #window
+        self.window = gw.getWindowsWithTitle('Calculator')[0]
     def apply_rect(self, rect):
         return rect.move([i*-1 for i in self.surf_rect.topleft])
 
@@ -232,34 +250,167 @@ class Game:
                     for point in self.dict_of_points[fn]:
                         point.kill()
                     list_of_points=[]
-                    if 'log' in fn or 'sqrt' in fn :
-                        starting_point=1
-                    elif 'tan' in fn:
-                        starting_point=-tiles_width*self.tilesize
-                    elif 'exp' in fn:
-                        starting_point=-tiles_width//2*self.tilesize
-                    # elif 'asin' in fn or 'acos' in fn:
-                    #     starting_point=-1
+                    starting_point=-tiles_width*self.tilesize
+                    if  'cos' in fn or  'sin' in fn or   'tan' in fn or  'cot' in fn:
+                        for x in range(starting_point,tiles_width*self.tilesize):
 
-                    else:
-                        starting_point=-tiles_width*self.tilesize
-                    for x in range(starting_point,tiles_width*self.tilesize):
-                            if  'cos' in fn or  'sin' in fn or   'tan' in fn or  'cot' in fn:
                                 if self.rad_deg_input.text=='' or self.rad_deg_input.text=='d':
-                                    x=x*pi/180
-                            if 'asin' in fn  or 'acos' in fn:
-                                if x>=1:
-                                    x=1
-                                elif x<=-1:
-                                    x=-1
-                            try:
-                                list_of_points.append(Point(self,(x*self.tilesize+tiles_width//2*self.tilesize,-eval(fn)*self.tilesize+tiles_height//2*self.tilesize)))
-                            except ZeroDivisionError:
-                                if x!=0:
+                                        x=x*pi/180
+                                if 'asin' in fn  or 'acos' in fn:
+                                    if x>=1:
+                                        x=1
+                                    elif x<=-1:
+                                        x=-1
+                                try:
+
                                     list_of_points.append(Point(self,(x*self.tilesize+tiles_width//2*self.tilesize,-eval(fn)*self.tilesize+tiles_height//2*self.tilesize)))
 
+                                except ZeroDivisionError:
+                                    if x!=0:
+                                        list_of_points.append(Point(self,(x*self.tilesize+tiles_width//2*self.tilesize,-eval(fn)*self.tilesize+tiles_height//2*self.tilesize)))
+                    else:
+                        if 'log' in fn or 'sqrt' in fn :
+                            list_of_x=[i for i in range(0,50)]
+                        else:
+                            list_of_x=[i for i in range(-50,50)]
+                        for x in list_of_x:
 
+                            try:
+                                y=eval(fn)
+                                list_of_points.append(Point(self,(x*self.tilesize+self.surf_rect.width/2,-y*self.tilesize+self.surf_rect.height/2)))
+                            except ValueError:
+                                    if x!=0 and x>0:
+                                        y=eval(fn)
+                                        list_of_points.append(Point(self,(x*self.tilesize+self.surf_rect.width/2,-y*self.tilesize+self.surf_rect.height/2)))
                     self.dict_of_points[fn]=list_of_points
+                    # derivative
+                    for fn in self.dict_of_derivatives:
+                        for fn in self.dict_of_derivatives.keys():
+                            for point in self.dict_of_derivatives[fn]:
+                                point.kill()
+                        list_of_points_d=[]
+                        self.dict_of_derivatives[fn]=[]
+                        points=self.dict_of_points[fn]
+                        list_y=[]
+                        list_x=[]
+                        for point in points:
+                            list_x.append(point.rect.centerx/self.tilesize)
+
+                        firs_el=list_x[0]
+                        list_to_add=list_x[list_x.index(firs_el*-1):]
+                        list_to_add=list_to_add[:len(list_to_add)//2]
+                        list_to_add.reverse()
+                        list_to_add=[i*-1 for i in list_to_add[:-2]]
+                        list_to_add=[i for i in list_to_add if i*self.tilesize>-self.surf_rect.width/2]
+                        list_to_add2=[i for i in list_x if i*self.tilesize<self.surf_rect.width/2]
+                        list_x=list_to_add+list_to_add2
+
+                        for x in list_x:
+                            try:
+                                y=-eval(fn)
+                                list_y.append(y)
+                            except ZeroDivisionError:
+                                    list_x=[i for i in list_x if i!=0]
+                                    if x!=0:
+                                        y=-eval(fn)
+                                        list_y.append(y)
+
+                        dy=gradient(list_y)
+                        dx=gradient(list_x)
+                        dydx=(dy/dx)
+                        coords=list(zip(list_x,dydx))
+                        for c in coords:
+                            list_of_points_d.append(Point(self,(c[0]*self.tilesize+self.surf_rect.width/2,c[1]*self.tilesize +self.surf_rect.height/2)))
+                        self.dict_of_derivatives[fn]=list_of_points_d
+                    #integral
+                    for fn in self.dict_of_int_rects:
+                        self.dict_of_int_rects[fn].clear()
+                        vars=list(self.last_intergral.keys())[0]
+                        start=vars[0]
+                        fin=vars[1]
+                        typee=vars[2]
+                        num=vars[3]
+                        num=int(num)
+                        if typee=='d':
+
+                            fn=list(self.dict_of_derivatives.keys())[num]
+                            points=self.dict_of_derivatives[fn]
+                            fn=str(sympy.diff(sympy.parse_expr(fn),sympy.abc.x))
+                        elif typee=='f':
+                            fn=list(self.dict_of_points.keys())[num]
+                            points=self.dict_of_points[fn]
+                        list_of_rects=[]
+                        list_x=[]
+                        list_y=[]
+
+                        for point in points:
+                            list_x.append(point.rect.centerx/self.tilesize-self.surf_rect.width/2/self.tilesize)
+
+                        list_x=[i for i in list_x if start<=i<=fin]
+
+
+                        if len(list_x)<100 :
+                            list_x=[i*10 for i in list_x]
+                            list_x=[i/10 for i in range(int(list_x[0]),int(list_x[-1]+1))]
+                        for x in list_x:
+                            try:
+                                y=-eval(fn)
+                                list_y.append(float(y))
+                            except ZeroDivisionError:
+                                    list_x=[i for i in list_x if i!=0]
+                                    if x!=0:
+                                        try:
+                                            y=-eval(fn)
+                                            list_y.append(float(y))
+                                        except ZeroDivisionError:
+                                            list_x.remove(x)
+
+                        # for calculating
+
+                        list_y=[round(i,5) for i in list_y]
+                        coords=zip(list_x,list_y)
+                        coords=[c for c in coords if not isnan(c[1])]
+
+                        dx=gradient(list_x)
+                        dx=[i for i in dx if i!=0]
+
+                        mean=sum(dx)/len(dx)
+
+                        if mean*self.tilesize<1:
+                            mean+=(1-mean)/self.tilesize
+                        if mean*self.tilesize>5:
+                            mean=1/self.tilesize
+                        mean=round(mean,2)
+
+                        list_heighs=[h[1] for h in coords]
+
+                        new_dx=[dx[-1] for i in range(len(dx))]
+
+
+                        areas_comp=zip(new_dx,list_heighs)
+                        areas=[round(h*w,5) for h,w in areas_comp]
+
+
+                        summ=0
+                        for i in areas:
+                            summ+=i
+
+                        if str(abs(summ))[:3]=='0.0':
+                            summ=0
+
+                        if "asin" in fn and summ>=2:
+                            summ=0
+                        for c in coords:
+
+
+                            if c[1]*self.tilesize + self.surf_rect.height/2<self.surf_rect.height/2:
+                                list_of_rects.append((c[0]*self.tilesize+self.surf_rect.width/2,c[1]*self.tilesize + self.surf_rect.height/2+1,mean*self.tilesize,abs(c[1]*self.tilesize)))
+                            else:
+                                list_of_rects.append((c[0]*self.tilesize+self.surf_rect.width/2,c[1]*self.tilesize + self.surf_rect.height/2-abs(c[1]*self.tilesize),mean*self.tilesize,abs(c[1]*self.tilesize)))
+
+                        self.last_intergral[(start,fin,type,num)]=-summ
+                        self.dict_of_int_rects[fn]=list_of_rects
+
 
 
 
@@ -270,34 +421,178 @@ class Game:
             for fn in self.dict_of_points.keys():
                 if not self.dict_of_points[fn]:
                     list_of_points=[]
-                    if 'log' in fn or 'sqrt' in fn :
-                        starting_point=1
-                    elif 'tan' in fn:
-                        starting_point=-tiles_width*self.tilesize
-                    elif 'exp' in fn:
-                        starting_point=-tiles_width//2*self.tilesize
-                    # elif 'asin' in fn or 'acos' in fn:
-                    #     starting_point=-1
+                    starting_point=-tiles_width*self.tilesize
+                    popper=False
+                    if  'cos' in fn or  'sin' in fn or   'tan' in fn or  'cot' in fn:
+                        for x in range(starting_point,tiles_width*self.tilesize):
 
-                    else:
-                        starting_point=-tiles_width*self.tilesize
-                    for x in range(starting_point,tiles_width*self.tilesize):
-                            if  'cos' in fn or  'sin' in fn or   'tan' in fn or  'cot' in fn:
                                 if self.rad_deg_input.text=='' or self.rad_deg_input.text=='d':
-                                    x=x*pi/180
-                            if 'asin' in fn  or 'acos' in fn:
-                                if x>=1:
-                                    x=1
-                                elif x<=-1:
-                                    x=-1
-                            try:
-                                list_of_points.append(Point(self,(x*self.tilesize+tiles_width//2*self.tilesize,-eval(fn)*self.tilesize+tiles_height//2*self.tilesize)))
-                            except ZeroDivisionError:
-                                if x!=0:
+                                        x=x*pi/180
+                                if 'asin' in fn  or 'acos' in fn:
+                                    if x>=1:
+                                        x=1
+                                    elif x<=-1:
+                                        x=-1
+                                try:
+
                                     list_of_points.append(Point(self,(x*self.tilesize+tiles_width//2*self.tilesize,-eval(fn)*self.tilesize+tiles_height//2*self.tilesize)))
 
+                                except ZeroDivisionError:
+                                    if x!=0:
+                                        list_of_points.append(Point(self,(x*self.tilesize+tiles_width//2*self.tilesize,-eval(fn)*self.tilesize+tiles_height//2*self.tilesize)))
+                    else:
+                        if 'log' in fn or 'sqrt' in fn :
+                            list_of_x=[i for i in range(0,50)]
+                        else:
+                            list_of_x=[i for i in range(-50,50)]
+                        for x in list_of_x:
 
-                    self.dict_of_points[fn]=list_of_points
+                            try:
+                                y=eval(fn)
+                                list_of_points.append(Point(self,(x*self.tilesize+self.surf_rect.width/2,-y*self.tilesize+self.surf_rect.height/2)))
+                            except ValueError:
+                                    if x!=0 and x>0:
+                                        y=eval(fn)
+                                        list_of_points.append(Point(self,(x*self.tilesize+self.surf_rect.width/2,-y*self.tilesize+self.surf_rect.height/2)))
+                            except TypeError:
+                                popper=True
+
+                    if not popper:
+                        self.dict_of_points[fn]=list_of_points
+                    else:
+                        self.dict_of_points={ k : v for k,v in self.dict_of_points.items() if v}
+
+
+
+    def integral(self,start,fin,typee,num):
+        #integral
+            num=int(num)
+            if typee=='d':
+
+                fn=list(self.dict_of_derivatives.keys())[num]
+                points=self.dict_of_derivatives[fn]
+                fn=str(sympy.diff(sympy.parse_expr(fn),sympy.abc.x))
+            elif typee=='f':
+                fn=list(self.dict_of_points.keys())[num]
+                points=self.dict_of_points[fn]
+            list_of_rects=[]
+            list_x=[]
+            list_y=[]
+
+            for point in points:
+                list_x.append(point.rect.centerx/self.tilesize-self.surf_rect.width/2/self.tilesize)
+
+            list_x=[i for i in list_x if start<=i<=fin]
+
+
+            if len(list_x)<100 :
+                list_x=[i*10 for i in list_x]
+                list_x=[i/10 for i in range(int(list_x[0]),int(list_x[-1]+1))]
+            for x in list_x:
+                try:
+                    y=-eval(fn)
+                    list_y.append(float(y))
+                except ZeroDivisionError:
+                        list_x=[i for i in list_x if i!=0]
+                        if x!=0:
+                            try:
+                                y=-eval(fn)
+                                list_y.append(float(y))
+                            except ZeroDivisionError:
+                                list_x.remove(x)
+
+            # for calculating
+
+            list_y=[round(i,5) for i in list_y]
+            coords=zip(list_x,list_y)
+            coords=[c for c in coords if not isnan(c[1])]
+
+            dx=gradient(list_x)
+            dx=[i for i in dx if i!=0]
+
+            mean=sum(dx)/len(dx)
+
+            if mean*self.tilesize<1:
+                mean+=(1-mean)/self.tilesize
+            if mean*self.tilesize>5:
+                mean=1/self.tilesize
+            mean=round(mean,2)
+
+            list_heighs=[h[1] for h in coords]
+
+            new_dx=[dx[-1] for i in range(len(dx))]
+
+
+            areas_comp=zip(new_dx,list_heighs)
+            areas=[round(h*w,5) for h,w in areas_comp]
+
+
+            summ=0
+            for i in areas:
+                summ+=i
+
+            if str(abs(summ))[:3]=='0.0':
+                summ=0
+
+            if "asin" in fn and summ>=2:
+                summ=0
+            for c in coords:
+
+
+                if c[1]*self.tilesize + self.surf_rect.height/2<self.surf_rect.height/2:
+                    list_of_rects.append((c[0]*self.tilesize+self.surf_rect.width/2,c[1]*self.tilesize + self.surf_rect.height/2+1,mean*self.tilesize,abs(c[1]*self.tilesize)))
+                else:
+                    list_of_rects.append((c[0]*self.tilesize+self.surf_rect.width/2,c[1]*self.tilesize + self.surf_rect.height/2-abs(c[1]*self.tilesize),mean*self.tilesize,abs(c[1]*self.tilesize)))
+
+            self.last_intergral[(start,fin,typee,num)]=-summ
+            self.dict_of_int_rects[fn]=list_of_rects
+
+
+    def derivative(self,num):
+        fn=list(self.dict_of_points.keys())[num]
+        if fn not in self.dict_of_derivatives.keys():
+
+                        list_of_points_d=[]
+                        points=self.dict_of_points[fn]
+                        list_y=[]
+                        list_x=[]
+                        for point in points:
+                            list_x.append(point.rect.centerx/self.tilesize-self.surf_rect.width/2/self.tilesize)
+
+                        for x in list_x:
+                            try:
+                                y=-eval(fn)
+                                list_y.append(y)
+                            except ZeroDivisionError:
+                                    list_x=[i for i in list_x if i!=0]
+                                    if x!=0 :
+                                        y=-eval(fn)
+                                        list_y.append(y)
+
+
+                        dy=gradient(list_y)
+                        dx=gradient(list_x)
+                        if 'exp' not in fn:
+                            dydx=(dy/dx)
+                        else:
+                            dydx=list_y
+                        dydx=[float(i) for i  in dydx]
+                        coords=list(zip(list_x,dydx))
+                        coords=[c for c in coords if not isnan(c[1])]
+
+                        for c in coords:
+                            # if "tan" in fn or 'sin' in fn or 'cos' in 'fn' or 'cot' in 'fn':
+                            #     list_of_points_d.append(Point(self,(c[0]*self.tilesize,c[1]*self.tilesize +self.surf_rect.height/2)))
+                            # else:
+                                list_of_points_d.append(Point(self,(c[0]*self.tilesize+self.surf_rect.width/2,c[1]*self.tilesize +self.surf_rect.height/2)))
+                        self.dict_of_derivatives[fn]=list_of_points_d
+
+        else:
+            for p in self.dict_of_derivatives[fn]:
+                p.kill()
+            self.dict_of_derivatives.pop(fn)
+
+
 
 
     def change_size_with_the_same_quality(self,surf,var):
@@ -331,6 +626,8 @@ class Game:
         if not all_not_False:
             self.dict_of_fields[self.field_1]=True
         self.screen_rect=self.screen.get_rect()
+        # if self.run_qe:
+        #     self.previous_size_qe=[self.screen_rect.width,self.screen_rect.height]
         self.qe_template.update()
         self.field_3.update()
         self.field_2.update()
@@ -376,6 +673,8 @@ class Game:
 
             self.screen = pg.display.set_mode((400, 600),pg.RESIZABLE)
             self.screen_rect=self.screen.get_rect()
+            # if self.run_calc:
+            #     self.previous_size_calc=[self.screen_rect.width,self.screen_rect.height]
             self.prev_size_for_a_ratio=[self.screen_rect.width,self.screen_rect.height]
             increment=0
             for i in range(7):
@@ -403,10 +702,19 @@ class Game:
 
 
     def update(self):
+        # for integrals
+        if not self.last_intergral:
+            self.dict_of_int_rects.clear()
+
 
 
         self.screen_rect=self.screen.get_rect()
+        # if self.run_graph:
+        #     self.previous_size_graph=[self.screen_rect.width,self.screen_rect.height]
         # update portion of the game loop
+        self.derivative_legend.update()
+        self.der_inp.update()
+        self.integral_input.update()
         self.calc_button.update()
         self.button_qe.update()
         if self.surf_rect.right<self.screen_rect.right:
@@ -457,7 +765,9 @@ class Game:
             self.input.get_coords((0,self.screen_height-25))
             self.color_input.get_coords((self.input.rect.width+self.input.rect.width//4,self.screen_height-25))
             self.legend.get_coords((self.screen_width-25,self.screen_height-25))
-
+            self.derivative_legend.get_coords((self.screen_width-25,0))
+            self.der_inp.get_coords((0,self.screen_height-25))
+            self.integral_input.get_coords((0,self.screen_height-25))
             #self.screen = pg.display.set_mode((self.screen_width+25,self.screen_height+25),pg.RESIZABLE,)
             self.draw_scroll_bar=True
             self.scrollbar_right.update(self.screen_height,(self.screen_width,0))
@@ -471,9 +781,14 @@ class Game:
             self.input.get_coords((0,self.screen_height))
             self.color_input.get_coords((self.input.rect.width+self.input.rect.width//4,self.screen_height))
             self.legend.get_coords((self.screen_width,self.screen_height))
+            self.derivative_legend.get_coords((self.screen_width,0))
+            self.der_inp.get_coords((0,self.screen_height))
+            self.integral_input.get_coords((0,self.screen_height))
             #self.screen = pg.display.set_mode((self.screen_width,self.screen_height),pg.RESIZABLE,)
             self.draw_scroll_bar=False
-        self.all_sprites.update()
+        for sp in self.all_sprites:
+            if hasattr(sp,'rect'):
+                sp.update()
 
 
 
@@ -532,7 +847,8 @@ class Game:
                 self.rect_x1=self.draw_text_surf_change('x1='+self.result_eq[1],self.font,int(self.qe_template.rect.height*0.07),CYAN,rect.left,rect.bottom,self.qe_template.img)
                 self.rect_x2=self.draw_text_surf_change('x2='+self.result_eq[2],self.font,int(self.qe_template.rect.height*0.07),CYAN,rect.left,rect.bottom+rect.height,self.qe_template.img)
         self.qe_template.draw()
-        self.grapher_button.draw()
+        if not self.window.isMaximized:
+            self.grapher_button.draw()
         self.scrollbar_qe.draw()
         pg.display.flip()
 
@@ -543,8 +859,19 @@ class Game:
         if self.dict_of_points:
             for fn in self.dict_of_points.keys():
                 for n,s_p in enumerate(self.dict_of_points[fn]):
-                    if n<len(self.dict_of_points[fn])-1: #and n%3!=0:
+                    if n<len(self.dict_of_points[fn])-1:
                         pg.draw.line(self.surf,eval(self.graph_color_dict[fn]),self.dict_of_points[fn][n].rect.center,self.dict_of_points[fn][n+1].rect.center,1)
+        if self.dict_of_derivatives:
+            for fn in self.dict_of_derivatives.keys():
+                for n,s_p in enumerate(self.dict_of_derivatives[fn]):
+                    if n<len(self.dict_of_derivatives[fn])-1:
+                        pg.draw.line(self.surf,eval(self.der_inp.colors[fn]),self.dict_of_derivatives[fn][n].rect.center,self.dict_of_derivatives[fn][n+1].rect.center,1)
+        if self.dict_of_int_rects:
+            for r in self.dict_of_int_rects.keys():
+                for c in  self.dict_of_int_rects[r]:
+                    pg.draw.rect(self.surf,YELLOW,c)
+
+
         if self.draw_points:
             self.all_sprites.draw(self.surf)
         self.screen.blit(self.surf,self.surf_rect)
@@ -559,8 +886,11 @@ class Game:
             self.scrollbar_right.draw()
         if self.draw_rad_deg_input:
             self.rad_deg_input.draw()
-
+        self.integral_input.draw()
+        self.der_inp.draw()
+        self.derivative_legend.draw()
         self.pointer.draw()
+
         list_of_coords=[]
         for fn,val in self.dict_of_points.items():
             for sprite in val:
@@ -573,9 +903,31 @@ class Game:
             coords=[round(i/self.tilesize,2) for i in point]
             coords[1]*=-1
             self.draw_text(str(coords),self.font,20,WHITE,self.pointer.rect.x+10,self.pointer.rect.y-10)
+        if not self.window.isMaximized:
+            self.calc_button.draw()
+            self.button_qe.draw()
 
-        self.calc_button.draw()
-        self.button_qe.draw()
+        # instruction
+        if not self.draw_insruction:
+            self.draw_text("TAB - to toggle the instruction",self.font,20,WHITE,self.button_qe.rect.right+10,self.calc_button.rect.top)
+        else:
+            ist=self.draw_text(" Instruction:",self.font,20,WHITE,self.button_qe.rect.right+10,self.calc_button.rect.top)
+            sp=self.draw_text("SPACE - to launch the graph creation;",self.font,18,WHITE,self.button_qe.rect.right+10,ist.bottom+10)
+            ar=self.draw_text("ARROWS(↑ ↓) - to scale the graph;",self.font,18,WHITE,self.button_qe.rect.right+10,sp.bottom+10)
+            d=self.draw_text("D - to find the derivative of a function;",self.font,18,WHITE,self.button_qe.rect.right+10,ar.bottom+10)
+            l=self.draw_text("L - toggles the legend;",self.font,18,WHITE,self.button_qe.rect.right+10,d.bottom+10)
+            bk=self.draw_text("BACKSPACE - to erase the last function;",self.font,18,WHITE,self.button_qe.rect.right+10,l.bottom+10)
+            er=self.draw_text("CTRL+TUB - to erase the all drawn functions;",self.font,18,WHITE,self.button_qe.rect.right+10,bk.bottom+10)
+            p=self.draw_text("P - draw all points of the graph;",self.font,18,WHITE,self.button_qe.rect.right+10,er.bottom+10)
+            dr=self.draw_text("CTRL+D - derivative legend;",self.font,18,WHITE,self.button_qe.rect.right+10,p.bottom+10)
+            i=self.draw_text("TUB - toggles instructions;",self.font,18,WHITE,self.button_qe.rect.right+10,dr.bottom+10)
+            id=self.draw_text("CTRL+I - to delete an area of the integration;",self.font,18,WHITE,self.button_qe.rect.right+10,i.bottom+10)
+            it=self.draw_text("I - to create an area of the integration;",self.font,18,WHITE,self.button_qe.rect.right+10,id.bottom+10)
+
+
+        #draxing of the last integral
+        if self.last_intergral:
+            self.draw_text("The Last Integral value:"+str(list(self.last_intergral.values())[0]),self.font,20,CYAN,0,self.button_qe.rect.bottom)
         pg.display.flip()
 
     def recur_factorial(self,n):
@@ -588,15 +940,24 @@ class Game:
 
     def events_qe(self):
         for event in pg.event.get():
+            # if event.type == pg.ACTIVEEVENT :
+            #         self.previous_size_qe=[self.screen_rect.width,self.screen_rect.height]
+            #
+            #         print(self.previous_size_graph)
             if event.type == pg.QUIT:
                 self.quit()
-            if event.type==pg.MOUSEBUTTONDOWN and event.button == 1 and pg.Rect.collidepoint(self.grapher_button.rect,pg.mouse.get_pos()):
-                    print(self.previous_size_graph)
+            if event.type==pg.MOUSEBUTTONDOWN and event.button == 1 and pg.Rect.collidepoint(self.grapher_button.rect,pg.mouse.get_pos()) and not self.window.isMaximized:
+                    self.just_changed_size=True
                     self.screen = pg.display.set_mode((self.previous_size_graph[0], self.previous_size_graph[1]),pg.RESIZABLE)
+                    pg.display.update()
                     if not self.run_graph:
                         self.previous_size_qe=[self.screen_rect.width,self.screen_rect.height]
                     self.run_graph=True
+
                     self.run_qe=False
+
+
+
             if  event.type==pg.VIDEORESIZE:
                 if self.new_size_for_a_ratio_qe:
                     self.prev_size_for_a_ratio_qe=self.new_size_for_a_ratio_qe
@@ -645,11 +1006,17 @@ class Game:
 
     def events_calc(self):
         for event in pg.event.get():
+            # if event.type == pg.ACTIVEEVENT:
+            #     if event.gain == 1 :
+            #         self.previous_size_calc=[self.screen_rect.width,self.screen_rect.height]
+            #     elif event.gain == 0 :
+            #         self.previous_size_calc=[self.screen_rect.width,self.screen_rect.height]
             if event.type == pg.QUIT:
                 self.quit()
 
                 #print(f"{self.prev_size_for_a_ratio},{self.new_size_for_a_ratio}")
-            if event.type==pg.MOUSEBUTTONDOWN and event.button == 1 and pg.Rect.collidepoint(self.dict_of_buttons['g'].rect,pg.mouse.get_pos()):
+            if event.type==pg.MOUSEBUTTONDOWN and event.button == 1 and pg.Rect.collidepoint(self.dict_of_buttons['g'].rect,pg.mouse.get_pos()) and not self.window.isMaximized:
+                self.just_changed_size=True
                 self.dict_of_buttons['g'].clicked=True
                 if self.dict_of_buttons['g'].clicked:
                     self.screen = pg.display.set_mode((self.previous_size_graph[0], self.previous_size_graph[1]),pg.RESIZABLE)
@@ -690,6 +1057,12 @@ class Game:
                     self.culc_screen.text=self.culc_screen.dict_of_previous_rows[self.culc_screen.number_of_row]
                 self.culc_screen.dict_of_previous_rows={k-1:v for k,v in self.culc_screen.dict_of_previous_rows.items()}
                 self.culc_screen.number_of_row-=1
+            if len(self.culc_screen.complete_command)==1 and  event.type==pg.MOUSEBUTTONDOWN and event.button == 1 and pg.Rect.collidepoint(self.dict_of_buttons['<'].rect,pg.mouse.get_pos()):
+                self.culc_screen.result=False
+                self.culc_screen.text=''
+                self.culc_screen.complete_command=''
+                self.culc_screen.dict_of_previous_rows.clear()
+                self.culc_screen.number_of_row=0
 
             if event.type==pg.MOUSEBUTTONDOWN and event.button == 1 and pg.Rect.collidepoint(self.dict_of_buttons['C'].rect,pg.mouse.get_pos()):
                 self.culc_screen.result=False
@@ -852,7 +1225,7 @@ class Game:
                         for l in str(eval(self.culc_screen.complete_command)):
                             if l=="0":
                                 num+=1
-                        print(num)
+
                         if num>5:
                             self.culc_screen.text=str(eval(self.culc_screen.complete_command))[:3]
 
@@ -922,7 +1295,9 @@ class Game:
     def events(self):
         # catch all events here
         for event in pg.event.get():
-            if event.type==pg.MOUSEBUTTONDOWN and event.button == 1 and pg.Rect.collidepoint(self.calc_button.rect,pg.mouse.get_pos()):
+
+            if event.type==pg.MOUSEBUTTONDOWN and event.button == 1 and pg.Rect.collidepoint(self.calc_button.rect,pg.mouse.get_pos()) and not self.window.isMaximized:
+                self.just_changed_size=True
                 self.calc_button.clicked=True
                 if self.calc_button.clicked:
 
@@ -933,14 +1308,14 @@ class Game:
                     self.run_calc=True
                     self.screen_rect=self.screen.get_rect()
 
-            if event.type==pg.MOUSEBUTTONDOWN and event.button == 1 and pg.Rect.collidepoint(self.button_qe.rect,pg.mouse.get_pos()):
+            if event.type==pg.MOUSEBUTTONDOWN and event.button == 1 and pg.Rect.collidepoint(self.button_qe.rect,pg.mouse.get_pos()) and not self.window.isMaximized:
+                self.just_changed_size=True
                 self.button_qe.clicked=True
                 if self.button_qe.clicked:
                     self.screen = pg.display.set_mode((self.previous_size_qe[0],self.previous_size_qe[1]),pg.RESIZABLE)
                     if not self.run_qe:
                         self.previous_size_graph=[self.screen_rect.width,self.screen_rect.height]
                     self.run_graph=False
-                    self.run_calc=False
                     self.run_qe=True
                     self.screen_rect=self.screen.get_rect()
 
@@ -963,17 +1338,113 @@ class Game:
             if event.type == pg.QUIT:
                 self.quit()
 
+            # if event.type == pg.VIDEOEXPOSE:
+            #     self.previous_size_graph=[self.screen_rect.width,self.screen_rect.height]
+            #     event.w=self.previous_size_graph[0]
+            #     event.h=self.previous_size_graph[1]
+            #     self.screen = pg.display.set_mode((self.previous_size_graph[0], self.previous_size_graph[1]),pg.RESIZABLE)
+
             if  event.type==pg.VIDEORESIZE :
-                if not self.full_screen :
-                    self.screen = pg.display.set_mode((event.w, event.h),pg.RESIZABLE)
+
+
+
+                    self.screen = pg.display.set_mode((event.w,event.h),pg.RESIZABLE)
                     self.screen_width=event.w
                     self.screen_height=event.h
                     self.renew_graphs()
 
-
+            #
+            # if event.type == pg.ACTIVEEVENT :
+            #         self.previous_size_graph=[self.screen_rect.width,self.screen_rect.height]
+            #         print(self.previous_size_graph)
 
             if event.type == pg.KEYDOWN:
+                # integeral
+                if event.key==pg.K_i and   pg.key.get_mods() & pg.KMOD_CTRL:
+                    self.last_intergral.clear()
 
+                if event.key==pg.K_i and not self.function_input and not  pg.key.get_mods() & pg.KMOD_CTRL:
+                    self.last_intergral.clear()
+                    self.integral_input.drawing=not self.integral_input.drawing
+                if self.integral_input.drawing and not self.integral_input.der_or_func_input:
+                    if event.key==pg.K_BACKSPACE :
+                            self.integral_input.text=self.integral_input.text[:-1]
+                    elif  event.key!=pg.K_RETURN  and event.key!=pg.K_i and event.unicode.isnumeric() and -16<=int(event.unicode)<=15 and len(self.integral_input.text)<7 or event.unicode=='-'and len(self.integral_input.text)<7 or  event.unicode==',' and len(self.integral_input.text)<7 :
+                            self.integral_input.text+=event.unicode
+                    if event.key==pg.K_RETURN:
+                            self.integral_input.der_or_func_input=not self.integral_input.der_or_func_input
+                elif self.integral_input.der_or_func_input and not self.integral_input.function_input:
+                    if event.key==pg.K_BACKSPACE :
+                            self.integral_input.der_or_func_text=self.integral_input.der_or_func_text[:-1]
+                    elif  event.key!=pg.K_RETURN  and event.unicode=='f' or event.key!=pg.K_RETURN  and event.unicode=='d':
+                        if len(self.integral_input.der_or_func_text)<1:
+                            self.integral_input.der_or_func_text+=event.unicode
+                    if event.key==pg.K_RETURN:
+                            self.integral_input.function_input=not self.integral_input.function_input
+                elif self.integral_input.function_input :
+                    if event.key==pg.K_BACKSPACE :
+                            self.integral_input.func_text=self.integral_input.func_text[:-1]
+                    elif  event.key!=pg.K_RETURN and event.unicode.isnumeric()   and len(self.dict_of_points.keys())-1>=int(event.unicode) and len(self.integral_input.func_text)<1:
+
+                            self.integral_input.func_text+=event.unicode
+                    if event.key==pg.K_RETURN:
+                        try:
+                            start,fin=self.integral_input.text.split(',')
+                            self.integral(int(start),int(fin),self.integral_input.der_or_func_text,self.integral_input.func_text)
+                            self.integral_input.text=''
+                            self.integral_input.der_or_func_text=''
+                            self.integral_input.func_text=''
+                            self.integral_input.drawing=False
+                            self.integral_input.der_or_func_input=False
+                            self.integral_input.function_input=False
+                        except ValueError:
+                            self.integral_input.text=''
+                            self.integral_input.der_or_func_text=''
+                            self.integral_input.func_text=''
+                            self.integral_input.drawing=False
+                            self.integral_input.der_or_func_input=False
+                            self.integral_input.function_input=False
+                        except IndexError:
+                            self.integral_input.text=''
+                            self.integral_input.der_or_func_text=''
+                            self.integral_input.func_text=''
+                            self.integral_input.drawing=False
+                            self.integral_input.der_or_func_input=False
+                            self.integral_input.function_input=False
+
+                if event.key==pg.K_TAB and not  pg.key.get_mods() & pg.KMOD_CTRL:
+                    self.draw_insruction=not self.draw_insruction
+                # derivative
+
+                if event.key==pg.K_d and pg.key.get_mods() & pg.KMOD_CTRL:
+                    self.derivative_legend.drawing=not self.derivative_legend.drawing
+
+                if not self.der_inp.color_input:
+                    if event.key==pg.K_d and not pg.key.get_mods() & pg.KMOD_CTRL and not self.function_input and not self.integral_input.drawing:
+                        self.der_inp.drawing=not self.der_inp.drawing
+                    if self.der_inp.drawing :
+                        if event.key==pg.K_BACKSPACE :
+                            self.der_inp.text=self.der_inp.text[:-1]
+                        elif  event.key!=pg.K_RETURN  and event.key!=pg.K_d and event.unicode.isnumeric() and len(self.dict_of_points.keys())-1>=int(event.unicode) and len(self.der_inp.text)<1:
+                            self.der_inp.text+=event.unicode
+                        if event.key==pg.K_RETURN:
+                            self.der_inp.color_input=not self.der_inp.color_input
+
+                else:
+                    if event.key==pg.K_BACKSPACE :
+                        self.der_inp.text_color=self.der_inp.text_color[:-1]
+                    elif  event.key!=pg.K_RETURN  and event.key!=pg.K_v :
+                        self.der_inp.text_color+=event.unicode
+                    if event.key==pg.K_RETURN:
+                        if self.der_inp.text_color!='':
+                            self.der_inp.colors[list(self.dict_of_points.keys())[int(self.der_inp.text)]]=self.der_inp.text_color
+                        else:
+                            self.der_inp.colors[list(self.dict_of_points.keys())[int(self.der_inp.text)]]=f"({randint(0,255)},{randint(0,255)},{randint(0,255)})"
+                        self.derivative(int(self.der_inp.text))
+                        self.der_inp.drawing=False
+                        self.der_inp.text=''
+                        self.der_inp.color_input=False
+                        self.der_inp.text_color=''
 
 
                 if event.key==pg.K_UP:
@@ -1006,8 +1477,11 @@ class Game:
                 if event.key==pg.K_l:
                     self.draw_legend=not self.draw_legend
                 if event.key == pg.K_v and pg.key.get_mods() & pg.KMOD_CTRL:
-                    self.color_input.text=pyperclip.paste()
-                if event.key==pg.K_BACKSPACE and self.input.text=='' and not self.draw_rad_deg_input:
+                    if not self.der_inp.color_input:
+                        self.color_input.text=pyperclip.paste()
+                    else:
+                        self.der_inp.text_color=pyperclip.paste()
+                if event.key==pg.K_BACKSPACE and self.input.text=='' and not self.draw_rad_deg_input and not self.der_inp.drawing and not self.integral_input.drawing:
                     if len(list(self.dict_of_points.keys()))>0:
                         key=list(self.dict_of_points.keys())[-1]
                         value=list(self.dict_of_points.values())[-1]
@@ -1015,13 +1489,38 @@ class Game:
                         del self.dict_of_points[key]
                         for spr in value:
                             spr.kill()
-                if event.key==pg.K_TAB:
+                        if key in self.dict_of_derivatives :
+                            self.der_inp.colors.pop(key)
+                            for p in self.dict_of_derivatives[key]:
+                                p.kill()
+                            del self.dict_of_derivatives[key]
+                    # for integrals
+                    list_to_add=[(sympy.diff(sympy.parse_expr(i),sympy.abc.x)) for i in list(self.dict_of_derivatives.keys())]
+                    list_to_add=[f'{i}' for i in list_to_add]
+                    keyss=list(self.dict_of_points.keys())+list_to_add
+                    keys_int=list(self.dict_of_int_rects.keys())
+
+                    for k in keys_int:
+                        if k not in keyss:
+
+                            self.last_intergral.clear()
+
+                    # if len(list(self.dict_of_derivatives.keys()))>0:
+                    #     key2=list(self.dict_of_derivatives.keys())[-1]
+                    #     if key2 in self.dict_of_derivatives :
+                    #         self.der_inp.colors.pop(key2)
+                    #         for p in self.dict_of_derivatives[key2]:
+                    #             p.kill()
+                    #         del self.dict_of_derivatives[key2]
+
+                if event.key==pg.K_TAB and pg.key.get_mods() & pg.KMOD_CTRL:
                     self.dict_of_points.clear()
                     self.graph_color_dict.clear()
                     self.all_sprites.empty()
+
                 if event.key==pg.K_p:
                     self.draw_points=not self.draw_points
-                if event.key==pg.K_SPACE and not self.color_input_text:
+                if event.key==pg.K_SPACE and not self.color_input_text and not self.der_inp.drawing:
                     self.function_input=not self.function_input
 
                 if self.function_input:
@@ -1072,6 +1571,7 @@ class Game:
                         except SyntaxError:
                                 pass
 
+
                         except NameError :
                                 if 'x' in self.input.text:
                                     good=False
@@ -1093,8 +1593,8 @@ class Game:
                         self.input.text=""
                         self.color_input.text=''
 
-                if   event.key==pg.K_z:
-                    self.draw_rad_deg_input=not self.draw_rad_deg_input
+                # if   event.key==pg.K_z:
+                #     self.draw_rad_deg_input=not self.draw_rad_deg_input
 
                 if self.draw_rad_deg_input and event.key!=pg.K_RETURN and not self.function_input and event.key!=pg.K_z:
                     if event.key==pg.K_BACKSPACE :

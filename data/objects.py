@@ -1,5 +1,8 @@
 from settings import *
 import pygame as pg
+import sympy
+from sympy import diff,parse_expr,abc
+
 vec=pg.Vector2
 import pyautogui
 from os import path
@@ -7,6 +10,9 @@ from os import path
 def change_size_with_the_same_quality(surf,var):
         changed_surf=pg.transform.scale(surf,(var[0],var[1]))
         return changed_surf
+
+
+
 
 class Point(pg.sprite.Sprite):
     def __init__(self,game,pos):
@@ -27,6 +33,7 @@ class Point(pg.sprite.Sprite):
     def __repr__(self):
         return f"{self.pos}"
     def update(self):
+
         self.coord_to_check=vec(self.rect.center)-vec(self.game.surf_rect.topleft)
         self.coord_to_check2=vec(self.game.pointer.rect.center)-vec(self.game.surf_rect.topleft)
 
@@ -86,12 +93,14 @@ class Legend:
     def draw(self):
         self.game.screen.blit(self.img,self.rect)
         pg.draw.rect(self.game.screen,BLACK,self.rect,3)
+        self.game.draw_text('Functions:',self.game.font,20,BLACK,self.rect.left+45,self.rect.y)
         if self.dict:
             height=0
             for key,val in self.dict.items():
                 height+=20
                 self.game.draw_text("-"+"  "+key,self.game.font,20,BLACK,self.rect.left+45,self.rect.y+height)
-                pg.draw.rect(self.game.screen,eval(val),pg.Rect(self.rect.left+20,self.rect.y+height+10,10,10))
+                pg.draw.rect(self.game.screen,eval(val),pg.Rect(self.rect.left+30,self.rect.y+height+10,10,10))
+                self.game.draw_text(str(list(self.dict.keys()).index(key))+')',self.game.font,20,BLACK,self.rect.left+10,self.rect.y+height)
     def update(self):
         self.rect.bottomright=self.pos
 
@@ -229,6 +238,7 @@ class ToFollowMouse:
 
 
 
+
 class ButtonToTheCalculator:
     def __init__(self,game):
         self.game=game
@@ -237,8 +247,9 @@ class ButtonToTheCalculator:
         self.clicked=False
         self.collide_with_mouse=False
     def update(self):
+        self.img=self.game.calc_button_img
         self.rect.topleft=self.game.screen_rect.topleft
-        if self.rect.collidepoint(pg.mouse.get_pos()):
+        if self.rect.collidepoint(pg.mouse.get_pos()) and 0<pg.mouse.get_pos()[0]<self.game.screen_rect.width and 0<pg.mouse.get_pos()[1]<self.game.screen_rect.height:
             self.img=self.game.calc_button_img2
         else:
             self.clicked=False
@@ -301,6 +312,7 @@ class CalculatorScreen:
     #     if self.text_rect.left<self.rect.left:
     #         pass
 
+
     def update(self):
         if len(self.text)>0:
             self.max_number_of_ch=round((self.rect.width-self.game.screen_rect.height*0.09)/(self.text_rect.width/len(self.text)))
@@ -328,8 +340,6 @@ class CalculatorScreen:
             self.last_command_backup.append(self.last_command)
 
         self.complete_command="".join([l for s in self.dict_of_previous_rows.values() for l in s])
-
-
         if not self.result:
 
 
@@ -361,11 +371,12 @@ class CalculatorScreen:
                     self.dict_of_previous_rows[self.number_of_row]=(self.text[index : index + self.max_number_of_ch])
                     list_of_keys=list(self.dict_of_previous_rows.keys())
                     list_of_values=list(self.dict_of_previous_rows.values())
-                    list_of_keys.reverse()
+                    list_of_keys.sort(reverse=True)
                     new_rows=list(zip(list_of_keys,list_of_values))
                     new_rows={k:v for k,v in new_rows}
                     self.dict_of_previous_rows=new_rows
                 self.text=self.dict_of_previous_rows[self.number_of_row]
+
 
 
 
@@ -589,11 +600,128 @@ class ScrollBarBottomQE:
             self.rect.bottomleft=self.game.qe_template.rect.bottomleft
             self.bar.rect.bottom=self.rect.bottom
             self.bar.pos=self.bar.rect.topright
+class DerivativeManager:
+    def __init__(self,game,pos):
+        self.drawing=False
+        self.game=game
+        self.img=pg.Surface((WIDTH//5,HEIGHT//20))
+        self.img.fill(WHITE)
+        self.rect=self.img.get_rect()
+        self.pos=pos
+        self.rect.bottomleft=pos
+        self.colors={}
+        self.color_input=False
+        self.text=''
+        self.text_color=''
+        self.color_inp_img=pg.Surface((WIDTH//5,HEIGHT//20))
+        self.color_inp_img.fill(WHITE)
+        self.rect2=self.color_inp_img.get_rect()
+        self.rect.bottomleft=pos
+    def draw(self):
+        if self.drawing:
+            self.game.screen.blit(self.img,self.rect)
+            self.yr=self.game.draw_text('Derivative for f(x)',self.game.font,20,BLACK,self.rect.left,self.rect.y+self.rect.height/2-22)
+            self.yr=self.game.draw_text('input:',self.game.font,20,BLACK,self.rect.left,self.rect.y+self.rect.height/2-5)
+            self.game.draw_text(self.text,self.game.font,20,BLACK,self.rect.left+50,self.rect.y+self.rect.height/2-5)
+        if self.color_input:
+            self.game.screen.blit(self.color_inp_img,self.rect2)
+            self.game.draw_text('RGB:',self.game.font,20,BLACK,self.rect2.left,self.rect2.y+self.rect2.height/2-5)
+            self.game.draw_text(self.text_color,self.game.font,20,BLACK,self.rect2.left+50,self.rect2.y+self.rect.height/2-5)
+
+    def update(self):
+        self.rect.bottomleft=self.pos
+        self.rect2.bottom=self.pos[1]
+        self.rect2.left=self.pos[0]+self.rect.width*1.2
+    def get_coords(self,pos):
+        self.pos=pos
 
 
 
+class DerivativeLegend:
+    def __init__(self,game,pos,dict):
+        self.game=game
+        self.img=pg.Surface((WIDTH//5,HEIGHT//3))
+        self.img.fill(WHITE)
+        self.rect=self.img.get_rect()
+        self.pos=pos
+        self.rect.bottomright=pos
+        self.dict=dict
+        self.drawing=False
+        self.dict_right={}
+    def draw(self):
+        if self.drawing:
+            self.game.screen.blit(self.img,self.rect)
+            pg.draw.rect(self.game.screen,BLACK,self.rect,3)
+            self.game.draw_text('Derivatives:',self.game.font,20,BLACK,self.rect.left+45,self.rect.y)
+            if self.dict:
+                height=0
+                for key,val in self.dict.items():
+                    height+=20
+                    if self.dict_right[key]>self.rect.right:
+                        self.game.draw_text("-"+" "+str(diff(parse_expr(key),abc.x)),self.game.font,int(20/(self.dict_right[key]/self.rect.right)),BLACK,self.rect.left+45,self.rect.y+height)
 
 
+                    else:
+                        self.game.draw_text("-"+"  "+str(diff(parse_expr(key),abc.x)),self.game.font,20,BLACK,self.rect.left+45,self.rect.y+height)
+                        # if str(diff(parse_expr(key),abc.x)) not in self.game.derivative_fns_copy:
+                        #     self.game.derivative_fns_copy.append(str(diff(parse_expr(key),abc.x)))
+                    pg.draw.rect(self.game.screen,eval(val),pg.Rect(self.rect.left+30,self.rect.y+height+10,10,10))
+                    self.game.draw_text(str(list(self.dict.keys()).index(key))+')',self.game.font,20,BLACK,self.rect.left+10,self.rect.y+height)
+    def update(self):
+        self.rect.topright=self.pos
+        height=0
+        for key,val in self.dict.items():
+            height+=20
+            rect=self.game.draw_text("-"+"  "+str(diff(parse_expr(key),abc.x)),self.game.font,20,BLACK,self.rect.left+45,self.rect.y+height)
+            self.dict_right[key]=rect.right
+    def get_coords(self,pos):
+        self.pos=pos
 
 
+class IntegralManager:
+    def __init__(self,game,pos):
+        self.drawing=False
+        self.game=game
+        self.img=pg.Surface((WIDTH//5,HEIGHT//20))
+        self.img.fill(WHITE)
+        self.rect=self.img.get_rect()
+        self.pos=pos
+        self.rect.bottomleft=pos
+        self.colors={}
+        self.der_or_func_input=False
+        self.text=''
+        self.der_or_func_text=''
+        self.der_or_func_img=pg.Surface((WIDTH//5,HEIGHT//20))
+        self.der_or_func_img.fill(WHITE)
+        self.rect2=self.der_or_func_img.get_rect()
+        self.rect.bottomleft=pos
+        self.function_input=False
+        self.func_text=''
+        self.func_img=pg.Surface((WIDTH//5,HEIGHT//20))
+        self.func_img.fill(WHITE)
+        self.rect3=self.der_or_func_img.get_rect()
+    def draw(self):
+        if self.drawing:
+            self.game.screen.blit(self.img,self.rect)
+            yr=self.game.draw_text('Start,End:',self.game.font,20,BLACK,self.rect.left,self.rect.y+self.rect.height/2-10)
+            self.game.draw_text(self.text,self.game.font,20,BLACK,yr.right+5,yr.top)
+        if self.der_or_func_input:
+            self.game.screen.blit(self.der_or_func_img,self.rect2)
+            self.game.draw_text('Derivative or f(x):',self.game.font,20,BLACK,self.rect2.left,self.rect2.y+self.rect2.height/2-20)
+            rect=self.game.draw_text('(d or f):',self.game.font,20,BLACK,self.rect2.left,self.rect2.y+self.rect2.height/2-3)
+            self.game.draw_text(self.der_or_func_text,self.game.font,20,BLACK,rect.right+3,rect.top)
+        if self.function_input:
+            self.game.screen.blit(self.func_img,self.rect3)
+            self.game.draw_text('Choose a function:',self.game.font,20,BLACK,self.rect3.left,self.rect3.y+self.rect3.height/2-20)
+            rect=self.game.draw_text('(number):',self.game.font,20,BLACK,self.rect3.left,self.rect3.y+self.rect3.height/2-3)
+            self.game.draw_text(self.func_text,self.game.font,20,BLACK,rect.right+3,rect.top)
+
+    def update(self):
+        self.rect.bottomleft=self.pos
+        self.rect2.bottom=self.pos[1]
+        self.rect2.left=self.pos[0]+self.rect.width*1.2
+        self.rect3.bottom=self.pos[1]
+        self.rect3.left=self.pos[0]+self.rect2.width*1.2+self.rect.width*1.2
+    def get_coords(self,pos):
+        self.pos=pos
 
